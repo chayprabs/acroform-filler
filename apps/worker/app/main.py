@@ -17,6 +17,7 @@ from .inspect import inspect_pdf
 from .jobs import JobRecord, job_store
 from .pdf_tools import fill_pdf, repair_pdf
 from .validate import validate_values
+from .xfa import convert_xfa_to_acroform
 
 SAMPLE_FILENAMES = {
     "w9": "w9.pdf",
@@ -157,7 +158,21 @@ async def inspect_endpoint(
         result = inspect_pdf(inspect_target.read_bytes(), password=password)
     except ValueError as exc:
         code = str(exc)
-        _raise_code(code)
+        if code == "409_XFA_NOT_CONVERTIBLE":
+            converted = convert_xfa_to_acroform(inspect_target.read_bytes(), password=password)
+            if converted:
+                converted_path = job_store.artifact_path(job, "xfa-converted.pdf")
+                converted_path.write_bytes(converted)
+                try:
+                    result = inspect_pdf(converted, password=password)
+                    result["warnings"].append("XFA was converted to AcroForm using sidecar conversion.")
+                    inspect_target = converted_path
+                except ValueError:
+                    _raise_code(code)
+            else:
+                _raise_code(code)
+        else:
+            _raise_code(code)
 
     job.source_pdf = inspect_target
     job.fields = result["fields"]

@@ -131,6 +131,35 @@ def test_inspect_xfa_only_returns_friendly_error(monkeypatch, tmp_path: Path) ->
     assert "XFA-only" in response.json()["detail"]["message"]
 
 
+def test_inspect_xfa_attempts_sidecar_conversion(monkeypatch, tmp_path: Path) -> None:
+    client = _client_with_tmp_store(monkeypatch, tmp_path)
+    monkeypatch.setattr("app.main.repair_pdf", lambda source, dest: dest.write_bytes(source.read_bytes()))
+    converted_pdf = b"%PDF-1.4 converted"
+
+    call_count = {"count": 0}
+
+    def fake_inspect(data: bytes, password: str | None = None):
+        call_count["count"] += 1
+        if call_count["count"] == 1:
+            raise ValueError("409_XFA_NOT_CONVERTIBLE")
+        return {
+            "fields": [{"name": "converted_field", "type": "text", "page": 1, "bbox": [0, 0, 100, 20]}],
+            "pageCount": 1,
+            "hasXfa": True,
+            "xfaConvertible": True,
+            "warnings": [],
+        }
+
+    monkeypatch.setattr("app.main.inspect_pdf", fake_inspect)
+    monkeypatch.setattr("app.main.convert_xfa_to_acroform", lambda data, password=None: converted_pdf)
+
+    response = client.post("/v1/inspect", files={"file": ("xfa.pdf", b"%PDF-1.4 test", "application/pdf")})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["fields"][0]["name"] == "converted_field"
+    assert any("XFA was converted" in warning for warning in body["warnings"])
+
+
 def test_batch_returns_zip_artifact(monkeypatch, tmp_path: Path) -> None:
     client = _client_with_tmp_store(monkeypatch, tmp_path)
     monkeypatch.setattr("app.main.fill_pdf", lambda **kwargs: Path(kwargs["dest"]).write_bytes(b"%PDF-1.4 filled"))
