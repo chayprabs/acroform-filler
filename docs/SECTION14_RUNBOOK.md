@@ -29,6 +29,20 @@ CI wiring:
   - `PDF_FORMS_API_URL`
 - `release.yml` runs hosted verification automatically on tags (and workflow_dispatch) using those vars or explicit inputs.
 
+## 1.1) Local Section 14 audit bundle
+
+Run:
+
+```bash
+python apps/worker/scripts/run_section14_local.py --skip-hosted
+```
+
+Output:
+
+- `apps/worker/artifacts/section14/local-audit.json`
+
+This audit aggregates pytest, p95, acceptance, renderer checks, and SEO route e2e into one machine-readable report.
+
 ## 2) Release artifact verification (14.17)
 
 1. Tag the branch:
