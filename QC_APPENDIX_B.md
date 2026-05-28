@@ -24,6 +24,7 @@ Commands run in this cycle:
 - `gh workflow run Release --ref cursor/pdf-forms-build -f web_url=https://github.com -f api_url=https://api.github.com` + run `26603999151` - PASS (`verify-hosted` job succeeded and emitted `ok=true` JSON in logs)
 - `docker compose config` - PASS (compose file validates and resolves service graph/env/ports)
 - `python apps/worker/scripts/run_section14_local.py --skip-hosted --skip-seo-e2e` - PASS (`ok=true`, consolidated JSON report written to `apps/worker/artifacts/section14/local-audit.json`)
+- CI run `26604730507` (commit `74e1578`) - PASS for `web`, `worker`, and `qualification`; uploaded `section14-local-audit` artifact with `ok=true` and all audited steps passing (`pytest`, `p95`, `acceptance`, `renderers`, `seo_e2e`)
 - `.github/workflows/release.yml` now publishes GHCR images on tags and supports workflow-dispatch hosted verification inputs (`web_url`, `api_url`) - PASS (configuration evidence)
 - `.github/workflows/release.yml` verify-hosted job now accepts repo vars (`PDF_FORMS_WEB_URL`, `PDF_FORMS_API_URL`) and runs automatically on tag/dispatch with `--allow-missing` - PASS (configuration evidence)
 - `python apps/worker/scripts/verify_release_artifacts.py --repo chayprabs/acroform-filler --tag v0.0.0-test` - PASS for verification path (script correctly reports missing release run/packages when tag is absent)
