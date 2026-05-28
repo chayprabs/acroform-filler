@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SAMPLE_IDS } from "./index.js";
+import { SAMPLE_IDS } from "./index";
 
 describe("shared-types", () => {
   it("exports four sample ids", () => {

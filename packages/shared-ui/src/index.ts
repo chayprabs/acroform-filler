@@ -1,3 +1,3 @@
-export { FileDrop } from "./FileDrop.js";
-export { ResultPane } from "./ResultPane.js";
-export { SamplePicker } from "./SamplePicker.js";
+export { FileDrop } from "./FileDrop";
+export { ResultPane } from "./ResultPane";
+export { SamplePicker } from "./SamplePicker";
