@@ -55,11 +55,11 @@ jobs:
         working-directory: apps/worker
       - run: python apps/worker/scripts/run_section14_local.py --skip-hosted
       - run: python apps/worker/scripts/section14_report.py
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: section14-local-audit
           path: apps/worker/artifacts/section14/local-audit.json
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: section14-verdict
           path: apps/worker/artifacts/section14/section14-report.json

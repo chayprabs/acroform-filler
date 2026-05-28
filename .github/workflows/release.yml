@@ -90,7 +90,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: python apps/worker/scripts/verify_hosted.py --allow-missing --derive-api-from-web --output apps/worker/artifacts/hosted/verify-hosted.json
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: hosted-verification
           path: apps/worker/artifacts/hosted/verify-hosted.json
