@@ -17,7 +17,7 @@
   "dependencies": {
     "@pdf-forms/shared-types": "workspace:*",
     "@pdf-forms/shared-ui": "workspace:*",
-    "next": "^15.5.2",
+    "next": "^16.2.6",
     "pdfjs-dist": "^4.10.38",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
