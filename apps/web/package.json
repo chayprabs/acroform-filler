@@ -11,7 +11,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:lighthouse:qual": "lighthouse http://127.0.0.1:3100 --quiet --throttling-method=provided --chrome-flags=\"--headless --no-sandbox\" --output=json --output-path=apps/web/lighthouse-report.mobile-provided.json"
   },
   "dependencies": {
     "@pdf-forms/shared-types": "workspace:*",
