@@ -28,6 +28,7 @@ Commands run in this cycle:
 - CI run `26604730507` (commit `74e1578`) - PASS for `web`, `worker`, and `qualification`; uploaded `section14-local-audit` artifact with `ok=true` and all audited steps passing (`pytest`, `p95`, `acceptance`, `renderers`, `seo_e2e`)
 - `python apps/worker/scripts/section14_report.py` - PASS (generated `apps/worker/artifacts/section14/section14-report.json` with explicit `NOT QUALIFIED` verdict due remaining `verify-deferred` hosted URLs and blocked Preview screenshot)
 - `python apps/worker/scripts/configure_hosted_urls.py --web-url ... --api-url ... --dry-run` - PASS (validated one-command path to configure repo vars for real hosted verification runs)
+- `python apps/worker/scripts/create_section14_pr.py` - PASS for guardrail behavior (correctly blocks PR creation until Section 14 verdict is `QUALIFIED`)
 - `.github/workflows/release.yml` now publishes GHCR images on tags and supports workflow-dispatch hosted verification inputs (`web_url`, `api_url`) - PASS (configuration evidence)
 - `.github/workflows/release.yml` verify-hosted job now accepts repo vars (`PDF_FORMS_WEB_URL`, `PDF_FORMS_API_URL`) and runs automatically on tag/dispatch with `--allow-missing` - PASS (configuration evidence)
 - Hosted verification now emits persisted JSON (`--output apps/worker/artifacts/hosted/verify-hosted.json`) and uploads `hosted-verification` workflow artifact for evidence retention

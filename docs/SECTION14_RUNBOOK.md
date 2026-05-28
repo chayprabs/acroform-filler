@@ -62,6 +62,12 @@ Output:
 
 - `apps/worker/artifacts/section14/section14-report.json`
 
+When verdict becomes `QUALIFIED`, create the required PR title using:
+
+```bash
+python apps/worker/scripts/create_section14_pr.py
+```
+
 ## 2) Release artifact verification (14.17)
 
 1. Tag the branch:
