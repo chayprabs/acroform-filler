@@ -20,6 +20,7 @@ Commands run in this cycle:
 - `docker compose exec -T worker python scripts/verify_renderers.py --skip-pdfjs` - PASS for `mutool draw` rendering sanity (`exitCode=0`, text extracted)
 - `gh repo edit chayprabs/acroform-filler --add-topic ...` and `gh repo view ... --json repositoryTopics` - PASS (15 required discovery topics set)
 - `python apps/worker/scripts/verify_hosted.py --web-url https://github.com --api-url https://api.github.com` - PASS (HTTP 200 + valid TLS verification path)
+- `.github/workflows/release.yml` now publishes GHCR images on tags and supports workflow-dispatch hosted verification inputs (`web_url`, `api_url`) - PASS (configuration evidence)
 - Route checks on production server (`http://127.0.0.1:3100`) - PASS for `/pdf-form-fill`, `/pdf-flatten`, `/fdf-to-pdf`, `/xfdf-to-pdf`, `/w9-fill-online`, `/i9-fill-online`
 - `python -m pytest` (worker) - PASS (`14 passed`), including password redaction and metadata scrubbing tests
 - `pnpm dlx lighthouse http://127.0.0.1:3100 --throttling-method=provided` - PASS (`96/100/100/100`)
@@ -53,7 +54,7 @@ Current status by checklist area:
 - 14.14 Non-functional (Lighthouse + p95) - PASS (p95 verified; Lighthouse >=95 on provided-throttling production run)
 - 14.15 Privacy & security - PASS (password redaction + no password persistence covered by automated tests)
 - 14.16 Testing - PASS (worker tests + automated pdf.js, Chrome viewer, and mutool rendering checks recorded)
-- 14.17 Deployment - PARTIAL PASS (release workflow now publishes GHCR images on tags; hosted URL checks still pending)
+- 14.17 Deployment - PARTIAL PASS (release workflow now publishes GHCR images on tags and supports hosted URL verification; production URL run still pending)
 - 14.18 Docs - PASS (README includes screenshot + self-host verification)
 - 14.19 SEO sub-routes - PASS
 - 14.20 Acceptance fixtures (A1/A2/A3) - PARTIAL PASS (A1/A2/A3 automated checks passing; macOS Preview confirmation still pending)
