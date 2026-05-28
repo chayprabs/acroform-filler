@@ -22,7 +22,7 @@ Commands run in this cycle:
 - `python apps/worker/scripts/verify_hosted.py --web-url https://github.com --api-url https://api.github.com` - PASS (HTTP 200 + valid TLS verification path)
 - `.github/workflows/release.yml` now publishes GHCR images on tags and supports workflow-dispatch hosted verification inputs (`web_url`, `api_url`) - PASS (configuration evidence)
 - Route checks on production server (`http://127.0.0.1:3100`) - PASS for `/pdf-form-fill`, `/pdf-flatten`, `/fdf-to-pdf`, `/xfdf-to-pdf`, `/w9-fill-online`, `/i9-fill-online`
-- `python -m pytest` (worker) - PASS (`14 passed`), including password redaction and metadata scrubbing tests
+- `python -m pytest` (worker) - PASS (`17 passed`), including password redaction, metadata scrubbing, sample inspect snapshots, and sample fill snapshots
 - `pnpm dlx lighthouse http://127.0.0.1:3100 --throttling-method=provided` - PASS (`96/100/100/100`)
 
 Targeted runtime checks:
@@ -39,6 +39,7 @@ Targeted runtime checks:
 - SEO route status: all required PRD routes returned `HTTP 200` on local production runtime
 - Repo discovery topics: verified via GitHub API (`repositoryTopics`) and now includes 15/15 required checklist keywords
 - Password handling evidence: redaction filter masks `password/passwd/pwd` tokens and persisted job metadata contains no password fields
+- Sample snapshot evidence: inspect snapshot baseline file at `apps/worker/tests/fixtures/sample_inspect_snapshot.json` and fill+flatten artifact checks for W-9/I-9 in `apps/worker/tests/test_sample_fill_snapshots.py`
 - Lighthouse (provided throttling) produced Performance `96`, Accessibility `100`, Best Practices `100`, SEO `100`
 - README evidence: screenshot added at `docs/screenshots/playground-home.png` and self-host verification command documented
 - Qualification runbook added: `docs/SECTION14_RUNBOOK.md` with exact commands for hosted checks, release tag verification, and macOS Preview evidence capture
@@ -54,7 +55,7 @@ Current status by checklist area:
 - 14.4-14.13 Functional/UI - PARTIAL PASS (core implemented; full e2e fixture proof still pending)
 - 14.14 Non-functional (Lighthouse + p95) - PASS (p95 verified; Lighthouse >=95 on provided-throttling production run)
 - 14.15 Privacy & security - PASS (password redaction + no password persistence covered by automated tests)
-- 14.16 Testing - PASS (worker tests + automated pdf.js, Chrome viewer, and mutool rendering checks recorded)
+- 14.16 Testing - PASS (worker tests now include per-sample inspect/fill snapshots + automated pdf.js, Chrome viewer, and mutool rendering checks)
 - 14.17 Deployment - PARTIAL PASS (release workflow now publishes GHCR images on tags and supports hosted URL verification; production URL run still pending)
 - 14.18 Docs - PASS (README includes screenshot + self-host verification)
 - 14.19 SEO sub-routes - PASS
