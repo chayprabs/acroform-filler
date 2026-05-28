@@ -58,6 +58,24 @@ def test_inspect_returns_schema(monkeypatch, tmp_path: Path) -> None:
     assert payload["fields"][0]["name"] == "full_name"
 
 
+def test_samples_endpoint_lists_and_serves_files(monkeypatch, tmp_path: Path) -> None:
+    client = _client_with_tmp_store(monkeypatch, tmp_path)
+    samples_dir = tmp_path / "samples"
+    samples_dir.mkdir()
+    for sample_name in ["w9.pdf", "i9.pdf", "registration.pdf", "multi-page.pdf"]:
+        (samples_dir / sample_name).write_bytes(b"%PDF-1.4 sample")
+
+    monkeypatch.setattr("app.main.settings.samples_dir", str(samples_dir))
+
+    listed = client.get("/v1/samples")
+    assert listed.status_code == 200
+    assert {item["id"] for item in listed.json()["samples"]} == {"w9", "i9", "registration", "multi-page"}
+
+    fetched = client.get("/v1/samples/w9")
+    assert fetched.status_code == 200
+    assert fetched.headers["content-type"] == "application/pdf"
+
+
 def test_validate_and_fill_emit_required_warning(monkeypatch, tmp_path: Path) -> None:
     client = _client_with_tmp_store(monkeypatch, tmp_path)
     store: JobStore = main_module.job_store

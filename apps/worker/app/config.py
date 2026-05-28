@@ -1,4 +1,8 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+DEFAULT_SAMPLES_DIR = str((Path(__file__).resolve().parent.parent / "samples"))
 
 
 class Settings(BaseSettings):
@@ -11,7 +15,7 @@ class Settings(BaseSettings):
     pdfcpu_path: str = "pdfcpu"
     qpdf_path: str = "qpdf"
     node_sidecar_url: str = "http://localhost:8787"
-    samples_dir: str = "/app/samples"
+    samples_dir: str = DEFAULT_SAMPLES_DIR
 
 
 settings = Settings()
