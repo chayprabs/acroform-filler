@@ -73,6 +73,17 @@ python apps/worker/scripts/section14_report.py \
   --preview-screenshot /absolute/path/to/preview.png
 ```
 
+GitHub workflow alternative (uploads local-audit + verdict artifacts):
+
+```bash
+gh workflow run "Section14 Qualify" \
+  -f repo=<owner>/acroform-filler \
+  -f tag=<release-tag> \
+  -f web_url=https://pdf-forms.<your-domain> \
+  -f api_url=https://api.pdf-forms.<your-domain>/healthz \
+  -f strict_hosted=true
+```
+
 When verdict becomes `QUALIFIED`, create the required PR title using:
 
 ```bash

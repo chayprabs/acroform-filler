@@ -1,0 +1,83 @@
+name: Section14 Qualify
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: "owner/repo for release artifact verification"
+        required: false
+        default: "chayprabs/acroform-filler"
+        type: string
+      tag:
+        description: "release tag to verify (for GHCR + Release workflow linkage)"
+        required: false
+        default: "v0.1.0-rc.3"
+        type: string
+      web_url:
+        description: "hosted web URL (https://...)"
+        required: false
+        type: string
+      api_url:
+        description: "hosted api health URL (https://.../healthz)"
+        required: false
+        type: string
+      strict_hosted:
+        description: "fail if hosted URLs are missing/unreachable"
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: sudo apt-get update && sudo apt-get install -y qpdf mupdf-tools xvfb
+      - run: pnpm install --frozen-lockfile
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ./apps/worker[dev]
+      - run: python apps/worker/scripts/run_section14_local.py --skip-hosted
+      - name: Generate Section 14 report
+        run: >
+          python apps/worker/scripts/section14_report.py
+          --repo "${{ inputs.repo }}"
+          --tag "${{ inputs.tag }}"
+          --web-url "${{ inputs.web_url }}"
+          --api-url "${{ inputs.api_url }}"
+          ${{ inputs.strict_hosted && '--strict-hosted' || '' }}
+      - name: Render verdict summary
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          report_path = Path("apps/worker/artifacts/section14/section14-report.json")
+          report = json.loads(report_path.read_text(encoding="utf-8"))
+          summary_path = Path(os.environ["GITHUB_STEP_SUMMARY"])
+          with open(summary_path, "w", encoding="utf-8") as f:
+            f.write(f"### Section 14 Verdict\n\n")
+            f.write(f"- Verdict: **{report.get('verdict')}**\n")
+            f.write(f"- Counts: `{json.dumps(report.get('counts', {}), separators=(',', ':'))}`\n")
+            remaining = report.get("remainingActions") or []
+            if remaining:
+              f.write("- Remaining actions:\n")
+              for item in remaining:
+                f.write(f"  - {item}\n")
+          PY
+      - uses: actions/upload-artifact@v7
+        with:
+          name: section14-local-audit
+          path: apps/worker/artifacts/section14/local-audit.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: section14-verdict
+          path: apps/worker/artifacts/section14/section14-report.json
