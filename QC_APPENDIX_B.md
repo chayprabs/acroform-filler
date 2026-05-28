@@ -22,6 +22,7 @@ Commands run in this cycle:
 - `python apps/worker/scripts/verify_hosted.py --web-url https://github.com --api-url https://api.github.com` - PASS (HTTP 200 + valid TLS verification path)
 - `python apps/worker/scripts/verify_hosted.py --allow-missing` - PASS for CI safety path (script reports skipped with explicit reason when hosted URLs are not configured)
 - `gh workflow run Release --ref cursor/pdf-forms-build -f web_url=https://github.com -f api_url=https://api.github.com` + run `26603999151` - PASS (`verify-hosted` job succeeded and emitted `ok=true` JSON in logs)
+- Release run `26604972073` - PASS for persisted hosted evidence (`hosted-verification` artifact downloaded and `verify-hosted.json` shows `ok=true`)
 - `docker compose config` - PASS (compose file validates and resolves service graph/env/ports)
 - `python apps/worker/scripts/run_section14_local.py --skip-hosted --skip-seo-e2e` - PASS (`ok=true`, consolidated JSON report written to `apps/worker/artifacts/section14/local-audit.json`)
 - CI run `26604730507` (commit `74e1578`) - PASS for `web`, `worker`, and `qualification`; uploaded `section14-local-audit` artifact with `ok=true` and all audited steps passing (`pytest`, `p95`, `acceptance`, `renderers`, `seo_e2e`)
