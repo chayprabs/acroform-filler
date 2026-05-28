@@ -67,6 +67,7 @@ python apps/worker/scripts/verify_hosted.py \
 ```
 
 The command fails non-zero unless both hosted endpoints return 2xx and both TLS certificates validate.
+You can also set `PDF_FORMS_WEB_URL` and `PDF_FORMS_API_URL` env vars and run `python apps/worker/scripts/verify_hosted.py`.
 
 Section 14 release-gate runbook: `docs/SECTION14_RUNBOOK.md`.
 Release artifact verification helper: `python apps/worker/scripts/verify_release_artifacts.py --repo <owner>/acroform-filler --tag <vX.Y.Z>`.

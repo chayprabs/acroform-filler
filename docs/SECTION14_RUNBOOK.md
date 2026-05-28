@@ -22,6 +22,13 @@ Expected:
 
 Attach JSON output to `QC_APPENDIX_B.md`.
 
+CI wiring:
+
+- Set repository variables:
+  - `PDF_FORMS_WEB_URL`
+  - `PDF_FORMS_API_URL`
+- `release.yml` runs hosted verification automatically on tags (and workflow_dispatch) using those vars or explicit inputs.
+
 ## 2) Release artifact verification (14.17)
 
 1. Tag the branch:
