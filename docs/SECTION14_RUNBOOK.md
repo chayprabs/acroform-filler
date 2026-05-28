@@ -36,6 +36,14 @@ git push origin v1.0.0-rc.1
    - `ghcr.io/<owner>/acroform-filler-worker:<tag>`
    - `ghcr.io/<owner>/acroform-filler-web:<tag>`
 
+Or run:
+
+```bash
+python apps/worker/scripts/verify_release_artifacts.py \
+  --repo <owner>/acroform-filler \
+  --tag v1.0.0-rc.1
+```
+
 Attach workflow URL and package links to `QC_APPENDIX_B.md`.
 
 ## 3) A1 macOS Preview evidence (14.20)

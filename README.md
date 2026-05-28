@@ -69,6 +69,7 @@ python apps/worker/scripts/verify_hosted.py \
 The command fails non-zero unless both hosted endpoints return 2xx and both TLS certificates validate.
 
 Section 14 release-gate runbook: `docs/SECTION14_RUNBOOK.md`.
+Release artifact verification helper: `python apps/worker/scripts/verify_release_artifacts.py --repo <owner>/acroform-filler --tag <vX.Y.Z>`.
 
 ## Quality notes
 

@@ -21,6 +21,7 @@ Commands run in this cycle:
 - `gh repo edit chayprabs/acroform-filler --add-topic ...` and `gh repo view ... --json repositoryTopics` - PASS (15 required discovery topics set)
 - `python apps/worker/scripts/verify_hosted.py --web-url https://github.com --api-url https://api.github.com` - PASS (HTTP 200 + valid TLS verification path)
 - `.github/workflows/release.yml` now publishes GHCR images on tags and supports workflow-dispatch hosted verification inputs (`web_url`, `api_url`) - PASS (configuration evidence)
+- `python apps/worker/scripts/verify_release_artifacts.py --repo chayprabs/acroform-filler --tag v0.0.0-test` - PASS for verification path (script correctly reports missing release run/packages when tag is absent)
 - Route checks on production server (`http://127.0.0.1:3100`) - PASS for `/pdf-form-fill`, `/pdf-flatten`, `/fdf-to-pdf`, `/xfdf-to-pdf`, `/w9-fill-online`, `/i9-fill-online`
 - `python -m pytest` (worker) - PASS (`17 passed`), including password redaction, metadata scrubbing, sample inspect snapshots, and sample fill snapshots
 - `pnpm dlx lighthouse http://127.0.0.1:3100 --throttling-method=provided` - PASS (`96/100/100/100`)
