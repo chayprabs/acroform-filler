@@ -30,6 +30,14 @@ CI wiring:
 - `release.yml` runs hosted verification automatically on tags (and workflow_dispatch) using those vars or explicit inputs.
 - Release workflow uploads `hosted-verification` artifact containing `verify-hosted.json` for audit retention.
 
+Optional helper to configure hosted URLs in repo variables:
+
+```bash
+python apps/worker/scripts/configure_hosted_urls.py \
+  --web-url https://pdf-forms.<your-domain> \
+  --api-url https://api.pdf-forms.<your-domain>/healthz
+```
+
 ## 1.1) Local Section 14 audit bundle
 
 Run:

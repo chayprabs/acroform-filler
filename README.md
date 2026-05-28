@@ -74,6 +74,7 @@ Release artifact verification helper: `python apps/worker/scripts/verify_release
 A1 evidence helper: `python apps/worker/scripts/generate_a1_evidence.py`.
 Section 14 local audit helper: `python apps/worker/scripts/run_section14_local.py --skip-hosted`.
 Section 14 verdict report: `python apps/worker/scripts/section14_report.py`.
+Hosted URL variable helper: `python apps/worker/scripts/configure_hosted_urls.py --web-url <...> --api-url <...>`.
 
 ## Quality notes
 
