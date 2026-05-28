@@ -1,13 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { SAMPLE_IDS, type InspectResult, type PdfField } from "@pdf-forms/shared-types";
 import { FileDrop, SamplePicker } from "@pdf-forms/shared-ui";
-import { Document, Page, pdfjs } from "react-pdf";
-import "react-pdf/dist/Page/AnnotationLayer.css";
-import "react-pdf/dist/Page/TextLayer.css";
+import type { FocusedFieldPreview } from "./components/PdfPreview";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+const PdfPreview = dynamic(() => import("./components/PdfPreview").then((mod) => mod.PdfPreview), {
+  ssr: false,
+  loading: () => <p className="text-sm text-slate-500">Loading PDF preview...</p>,
+});
 
 const WORKER_URL = process.env.NEXT_PUBLIC_WORKER_URL ?? "http://localhost:8000";
 
@@ -210,6 +212,9 @@ export default function HomePage() {
   }
 
   const focused = inspectResult?.fields.find((field) => field.name === focusedField) ?? null;
+  const focusedPreview: FocusedFieldPreview | null = focused
+    ? { page: focused.page, bbox: focused.bbox as [number, number, number, number] }
+    : null;
 
   return (
     <main className="min-h-screen bg-slate-100 p-4 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
@@ -243,22 +248,7 @@ export default function HomePage() {
               <h2 className="mb-2 text-sm font-semibold">PDF preview</h2>
               <div className="relative min-h-[360px] overflow-auto rounded-md border border-slate-200 bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-950">
                 {pdfBlobUrl ? (
-                  <div className="relative inline-block">
-                    <Document file={pdfBlobUrl}>
-                      <Page pageNumber={focused?.page ?? 1} scale={1.1} />
-                    </Document>
-                    {focused ? (
-                      <div
-                        className="pointer-events-none absolute border-2 border-rose-500"
-                        style={{
-                          left: `${focused.bbox[0] * 1.1}px`,
-                          top: `${focused.bbox[1] * 1.1}px`,
-                          width: `${focused.bbox[2] * 1.1}px`,
-                          height: `${focused.bbox[3] * 1.1}px`,
-                        }}
-                      />
-                    ) : null}
-                  </div>
+                  <PdfPreview fileUrl={pdfBlobUrl} focusedField={focusedPreview} />
                 ) : (
                   <p className="text-sm text-slate-500">Upload or select a sample to preview the PDF.</p>
                 )}
@@ -310,7 +300,7 @@ export default function HomePage() {
                                   className="rounded-md border border-slate-300 px-3 py-2 dark:border-slate-700 dark:bg-slate-950"
                                   {...common}
                                 >
-                                  <option value="">Select…</option>
+                                  <option value="">Select...</option>
                                   {(field.options ?? []).map((option) => (
                                     <option key={option} value={option}>
                                       {option}
@@ -346,23 +336,31 @@ export default function HomePage() {
             <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
               <h2 className="mb-2 text-sm font-semibold">Schema and import</h2>
               <div className="grid gap-2">
-                <textarea
-                  placeholder='Paste JSON values, e.g. {"first_name":"Ada"}'
-                  className="min-h-28 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-                  onBlur={(event) => {
-                    if (event.currentTarget.value.trim()) {
-                      void pasteJson(event.currentTarget.value);
-                    }
-                  }}
-                />
-                <input
-                  type="file"
-                  accept=".json,.fdf,.xfdf"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    if (file) void importValues(file);
-                  }}
-                />
+                <label className="grid gap-1 text-sm">
+                  JSON values
+                  <textarea
+                    placeholder='Paste JSON values, e.g. {"first_name":"Ada"}'
+                    aria-label="JSON values"
+                    className="min-h-28 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+                    onBlur={(event) => {
+                      if (event.currentTarget.value.trim()) {
+                        void pasteJson(event.currentTarget.value);
+                      }
+                    }}
+                  />
+                </label>
+                <label className="grid gap-1 text-sm">
+                  Import file (JSON/FDF/XFDF)
+                  <input
+                    type="file"
+                    accept=".json,.fdf,.xfdf"
+                    aria-label="Import file"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file) void importValues(file);
+                    }}
+                  />
+                </label>
                 <div className="max-h-72 overflow-auto rounded-md border border-slate-200 p-2 text-xs dark:border-slate-700">
                   <pre>{JSON.stringify(inspectResult?.fields ?? [], null, 2)}</pre>
                 </div>
@@ -377,6 +375,7 @@ export default function HomePage() {
                   <input
                     type="file"
                     accept=".zip,application/zip"
+                    aria-label="PDF ZIP"
                     onChange={(event) => setBatchZipFile(event.target.files?.[0] ?? null)}
                   />
                 </label>
@@ -385,6 +384,7 @@ export default function HomePage() {
                   <input
                     type="file"
                     accept=".csv,text/csv"
+                    aria-label="CSV mapping"
                     onChange={(event) => setBatchCsvFile(event.target.files?.[0] ?? null)}
                   />
                 </label>
@@ -465,14 +465,24 @@ export default function HomePage() {
           >
             Flatten
           </button>
-          <a
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium disabled:pointer-events-none disabled:opacity-50"
-            href={downloadUrl ?? undefined}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Download
-          </a>
+          {downloadUrl ? (
+            <a
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium"
+              href={downloadUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Download
+            </a>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium opacity-50"
+            >
+              Download
+            </button>
+          )}
           {loading ? <span className="text-sm text-slate-500">{loading}</span> : null}
           {error ? <span className="text-sm text-rose-600">{error}</span> : null}
           {sourceFile ? <span className="ml-auto text-xs text-slate-500">Source: {sourceFile.name}</span> : null}

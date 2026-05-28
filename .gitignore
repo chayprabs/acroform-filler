@@ -19,6 +19,8 @@ coverage/
 *.tsbuildinfo
 playwright-report/
 test-results/
+lighthouse-report*.json
+run-web.log
 
 # Python artifacts
 __pycache__/
