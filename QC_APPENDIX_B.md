@@ -29,6 +29,7 @@ Commands run in this cycle:
 - `python -m pytest` (worker) - PASS (`17 passed`), including password redaction, metadata scrubbing, sample inspect snapshots, and sample fill snapshots
 - `pnpm dlx lighthouse http://127.0.0.1:3100 --throttling-method=provided` - PASS (`96/100/100/100`)
 - `pnpm --filter @pdf-forms/web test:e2e -- tests/e2e/seo-routes.spec.ts` - PASS (all 6 required SEO routes return 200 with expected page heading)
+- `python apps/worker/scripts/generate_a1_evidence.py --skip-mutool` - PASS (generated filled W-9 + pdf.js + headed Chrome proof bundle for A1, leaving only Preview screenshot as manual evidence)
 
 Targeted runtime checks:
 
@@ -48,6 +49,7 @@ Targeted runtime checks:
 - Lighthouse (provided throttling) produced Performance `96`, Accessibility `100`, Best Practices `100`, SEO `100`
 - README evidence: screenshot added at `docs/screenshots/playground-home.png` and self-host verification command documented
 - Qualification runbook added: `docs/SECTION14_RUNBOOK.md` with exact commands for hosted checks, release tag verification, and macOS Preview evidence capture
+- A1 evidence bundle generator added: `apps/worker/scripts/generate_a1_evidence.py` writes deterministic artifacts under `apps/worker/artifacts/a1-evidence/`
 - Docker host status: local `docker compose up -d` currently VERIFY-DEFERRED due host API error (`dockerDesktopLinuxEngine v1.54 ... 500`), not app stack failure
 
 ## Section 14 status snapshot

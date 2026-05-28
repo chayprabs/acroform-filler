@@ -50,9 +50,22 @@ Attach workflow URL and package links to `QC_APPENDIX_B.md`.
 
 On a macOS machine:
 
-1. Produce a filled W-9 from the app.
-2. Open output in Preview.
-3. Confirm text and checkbox values are visible.
-4. Capture one screenshot and add it to `docs/screenshots/`.
+1. Generate evidence bundle:
 
-Attach the screenshot path and result to `QC_APPENDIX_B.md`.
+```bash
+python apps/worker/scripts/generate_a1_evidence.py
+```
+
+This writes:
+
+- `apps/worker/artifacts/a1-evidence/a1-filled-w9.pdf`
+- `apps/worker/artifacts/a1-evidence/a1-evidence.json`
+
+2. Confirm `a1-evidence.json` shows `pdfjs.ok = true`, `chromeViewer.ok = true`, and `mutool.ok = true` (or run without mutool skip in CI/container).
+3. Open `a1-filled-w9.pdf` in Preview.
+4. Confirm text and checkbox values are visible.
+5. Capture one screenshot and add it to `docs/screenshots/`.
+
+Attach screenshot path and `a1-evidence.json` summary to `QC_APPENDIX_B.md`.
+
+Only the macOS Preview confirmation remains manual after running the generator.
