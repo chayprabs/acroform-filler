@@ -1,0 +1,4 @@
+Contact: https://github.com/chayprabs/acroform-filler/security/advisories/new
+Policy: https://github.com/chayprabs/acroform-filler/blob/main/SECURITY.md
+Preferred-Languages: en
+Canonical: https://pdf-forms.standalone-tool-portfolio/.well-known/security.txt
