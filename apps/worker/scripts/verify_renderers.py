@@ -57,8 +57,9 @@ def _generate_filled_pdf(tmp_dir: Path) -> Path:
 def _verify_pdfjs(pdf_path: Path) -> dict[str, object]:
     script = Path(__file__).resolve().parents[2] / "web" / "scripts" / "verify_pdfjs_render.mjs"
     repo_root = Path(__file__).resolve().parents[3]
+    pnpm_cmd = "pnpm.cmd" if os.name == "nt" else "pnpm"
     result = subprocess.run(
-        ["pnpm.cmd", "exec", "node", str(script), str(pdf_path)],
+        [pnpm_cmd, "exec", "node", str(script), str(pdf_path)],
         cwd=repo_root,
         capture_output=True,
         text=True,

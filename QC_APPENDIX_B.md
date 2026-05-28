@@ -56,6 +56,7 @@ Targeted runtime checks:
 - Qualification runbook added: `docs/SECTION14_RUNBOOK.md` with exact commands for hosted checks, release tag verification, and macOS Preview evidence capture
 - A1 evidence bundle generator added: `apps/worker/scripts/generate_a1_evidence.py` writes deterministic artifacts under `apps/worker/artifacts/a1-evidence/`
 - Section 14 local audit aggregator added: `apps/worker/scripts/run_section14_local.py` consolidates pytest/p95/acceptance/render/SEO checks into one JSON output
+- Renderer verifier made cross-platform for CI (`pnpm` on Linux, `pnpm.cmd` on Windows) to avoid false negatives in qualification job
 - Docker host status: local `docker compose up -d` currently VERIFY-DEFERRED due host API error (`dockerDesktopLinuxEngine v1.54 ... 500`), not app stack failure
 - Docker host status (latest retry): `docker compose up -d` still VERIFY-DEFERRED due Docker Desktop API error (`/images/acroform-filler-web/json` returned 500), not app boot/runtime stack failure
 
