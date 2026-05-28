@@ -55,7 +55,19 @@ def _package_has_tag(owner: str, package_name: str, tag: str) -> dict[str, objec
             ]
         )
     except RuntimeError as exc:
-        return {"ok": False, "reason": str(exc)}
+        reason = str(exc)
+        if "read:packages" in reason or "HTTP 403" in reason:
+            image_ref = f"ghcr.io/{owner}/{package_name}:{tag}"
+            manifest = subprocess.run(
+                ["docker", "manifest", "inspect", image_ref],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if manifest.returncode == 0:
+                return {"ok": True, "source": "docker-manifest", "image": image_ref}
+            return {"ok": False, "reason": reason, "dockerReason": (manifest.stderr or "").strip()[-300:]}
+        return {"ok": False, "reason": reason}
     for version in versions:
         tags = (version.get("metadata") or {}).get("container", {}).get("tags", [])
         if tag in tags:

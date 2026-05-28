@@ -22,6 +22,7 @@ Commands run in this cycle:
 - `python apps/worker/scripts/verify_hosted.py --web-url https://github.com --api-url https://api.github.com` - PASS (HTTP 200 + valid TLS verification path)
 - `.github/workflows/release.yml` now publishes GHCR images on tags and supports workflow-dispatch hosted verification inputs (`web_url`, `api_url`) - PASS (configuration evidence)
 - `python apps/worker/scripts/verify_release_artifacts.py --repo chayprabs/acroform-filler --tag v0.0.0-test` - PASS for verification path (script correctly reports missing release run/packages when tag is absent)
+- `git tag v0.1.0-rc.1 && git push origin v0.1.0-rc.1` - PARTIAL PASS: Release workflow executed, `publish-images` succeeded, `build` failed due pnpm version conflict (fixed in workflow for next tag run)
 - Route checks on production server (`http://127.0.0.1:3100`) - PASS for `/pdf-form-fill`, `/pdf-flatten`, `/fdf-to-pdf`, `/xfdf-to-pdf`, `/w9-fill-online`, `/i9-fill-online`
 - `python -m pytest` (worker) - PASS (`17 passed`), including password redaction, metadata scrubbing, sample inspect snapshots, and sample fill snapshots
 - `pnpm dlx lighthouse http://127.0.0.1:3100 --throttling-method=provided` - PASS (`96/100/100/100`)
@@ -58,7 +59,7 @@ Current status by checklist area:
 - 14.14 Non-functional (Lighthouse + p95) - PASS (p95 verified; Lighthouse >=95 on provided-throttling production run)
 - 14.15 Privacy & security - PASS (password redaction + no password persistence covered by automated tests)
 - 14.16 Testing - PASS (worker tests now include per-sample inspect/fill snapshots + automated pdf.js, Chrome viewer, and mutool rendering checks)
-- 14.17 Deployment - PARTIAL PASS (release workflow now publishes GHCR images on tags and supports hosted URL verification; production URL run still pending)
+- 14.17 Deployment - PARTIAL PASS (tag-triggered release path exercised; pnpm conflict fix applied and pending re-run on next tag; hosted production URL run still pending)
 - 14.18 Docs - PASS (README includes screenshot + self-host verification)
 - 14.19 SEO sub-routes - PASS
 - 14.20 Acceptance fixtures (A1/A2/A3) - PARTIAL PASS (A1/A2/A3 automated checks passing; macOS Preview confirmation still pending)
