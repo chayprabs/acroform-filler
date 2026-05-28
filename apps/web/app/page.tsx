@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { SAMPLE_IDS, type InspectResult, type PdfField } from "@pdf-forms/shared-types";
 import { FileDrop, SamplePicker } from "@pdf-forms/shared-ui";
+import { Download, FileCheck2, FileUp, FlaskConical, Layers, Sparkles } from "lucide-react";
 import type { FocusedFieldPreview } from "./components/PdfPreview";
 
 const PdfPreview = dynamic(() => import("./components/PdfPreview").then((mod) => mod.PdfPreview), {
@@ -51,6 +52,15 @@ export default function HomePage() {
     skipped: number;
     errors: number;
   } | null>(null);
+  const [jsonDraft, setJsonDraft] = useState("");
+
+  useEffect(() => {
+    return () => {
+      if (pdfBlobUrl) {
+        URL.revokeObjectURL(pdfBlobUrl);
+      }
+    };
+  }, [pdfBlobUrl]);
 
   const groupedFields = useMemo(() => {
     const map = new Map<number, PdfField[]>();
@@ -128,6 +138,19 @@ export default function HomePage() {
     } catch {
       setError("Invalid JSON payload.");
     }
+  }
+
+  function exportSchema() {
+    if (!inspectResult?.fields.length) return;
+    const blob = new Blob([JSON.stringify(inspectResult.fields, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "pdf-form-schema.json";
+    anchor.click();
+    URL.revokeObjectURL(url);
   }
 
   async function validateValues() {
@@ -220,11 +243,39 @@ export default function HomePage() {
     <main className="min-h-screen bg-slate-100 p-4 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <div className="mx-auto grid w-full max-w-[1500px] gap-4">
         <header className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
-          <h1 className="text-lg font-semibold">PdfForms</h1>
+          <div>
+            <h1 className="text-lg font-semibold">PdfForms</h1>
+            <p className="text-xs text-slate-500">Inspect, fill, validate and flatten AcroForms.</p>
+          </div>
           <a className="text-sm text-blue-600 hover:underline" href="https://github.com/chayprabs/acroform-filler">
             GitHub
           </a>
         </header>
+
+        <section className="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+          <ol className="grid gap-2 text-sm md:grid-cols-5">
+            <li className="flex items-center gap-2 rounded-md bg-slate-100 px-2 py-1.5 dark:bg-slate-800">
+              <FileUp className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+              Upload PDF
+            </li>
+            <li className="flex items-center gap-2 rounded-md bg-slate-100 px-2 py-1.5 dark:bg-slate-800">
+              <Sparkles className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+              Inspect fields
+            </li>
+            <li className="flex items-center gap-2 rounded-md bg-slate-100 px-2 py-1.5 dark:bg-slate-800">
+              <Layers className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+              Fill values
+            </li>
+            <li className="flex items-center gap-2 rounded-md bg-slate-100 px-2 py-1.5 dark:bg-slate-800">
+              <FlaskConical className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+              Validate or flatten
+            </li>
+            <li className="flex items-center gap-2 rounded-md bg-slate-100 px-2 py-1.5 dark:bg-slate-800">
+              <Download className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+              Download output
+            </li>
+          </ol>
+        </section>
 
         <section className="grid gap-4 xl:grid-cols-[2fr_1.2fr]">
           <div className="grid gap-4">
@@ -342,13 +393,18 @@ export default function HomePage() {
                     placeholder='Paste JSON values, e.g. {"first_name":"Ada"}'
                     aria-label="JSON values"
                     className="min-h-28 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-                    onBlur={(event) => {
-                      if (event.currentTarget.value.trim()) {
-                        void pasteJson(event.currentTarget.value);
-                      }
-                    }}
+                    value={jsonDraft}
+                    onChange={(event) => setJsonDraft(event.target.value)}
                   />
                 </label>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium disabled:opacity-50 dark:border-slate-700"
+                  onClick={() => void pasteJson(jsonDraft)}
+                  disabled={!jsonDraft.trim()}
+                >
+                  Apply JSON
+                </button>
                 <label className="grid gap-1 text-sm">
                   Import file (JSON/FDF/XFDF)
                   <input
@@ -361,6 +417,15 @@ export default function HomePage() {
                     }}
                   />
                 </label>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium disabled:opacity-50 dark:border-slate-700"
+                  onClick={exportSchema}
+                  disabled={!inspectResult?.fields.length}
+                >
+                  <FileCheck2 className="h-4 w-4" />
+                  Export field schema JSON
+                </button>
                 <div className="max-h-72 overflow-auto rounded-md border border-slate-200 p-2 text-xs dark:border-slate-700">
                   <pre>{JSON.stringify(inspectResult?.fields ?? [], null, 2)}</pre>
                 </div>
@@ -390,7 +455,7 @@ export default function HomePage() {
                 </label>
                 <button
                   type="button"
-                  className="rounded-md bg-violet-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+                  className="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-slate-200 dark:text-slate-900"
                   disabled={loading !== null}
                   onClick={() => void runBatch()}
                 >
@@ -451,7 +516,7 @@ export default function HomePage() {
           </button>
           <button
             type="button"
-            className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-slate-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900"
             onClick={() => void fill(false)}
             disabled={!inspectResult || loading !== null}
           >
@@ -459,7 +524,7 @@ export default function HomePage() {
           </button>
           <button
             type="button"
-            className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-slate-700 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-slate-300 dark:text-slate-900"
             onClick={() => void fill(true)}
             disabled={!inspectResult || loading !== null}
           >
