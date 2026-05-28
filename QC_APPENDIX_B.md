@@ -24,6 +24,7 @@ Commands run in this cycle:
 - `python apps/worker/scripts/verify_release_artifacts.py --repo chayprabs/acroform-filler --tag v0.0.0-test` - PASS for verification path (script correctly reports missing release run/packages when tag is absent)
 - `git tag v0.1.0-rc.1 && git push origin v0.1.0-rc.1` - PARTIAL PASS: Release workflow executed, `publish-images` succeeded, `build` failed due pnpm version conflict (fixed in workflow for next tag run)
 - `git tag v0.1.0-rc.2 && git push origin v0.1.0-rc.2` - PARTIAL PASS: Release workflow executed, `publish-images` succeeded with verifiable tags (`ghcr.io/...:v0.1.0-rc.2`), `build` failed on editable install package discovery (fixed by explicit setuptools package config)
+- `git tag v0.1.0-rc.3 && git push origin v0.1.0-rc.3` + `python apps/worker/scripts/verify_release_artifacts.py --repo chayprabs/acroform-filler --tag v0.1.0-rc.3` - PASS (Release workflow success and both GHCR images resolvable by tag)
 - Route checks on production server (`http://127.0.0.1:3100`) - PASS for `/pdf-form-fill`, `/pdf-flatten`, `/fdf-to-pdf`, `/xfdf-to-pdf`, `/w9-fill-online`, `/i9-fill-online`
 - `python -m pytest` (worker) - PASS (`17 passed`), including password redaction, metadata scrubbing, sample inspect snapshots, and sample fill snapshots
 - `pnpm dlx lighthouse http://127.0.0.1:3100 --throttling-method=provided` - PASS (`96/100/100/100`)
@@ -60,7 +61,7 @@ Current status by checklist area:
 - 14.14 Non-functional (Lighthouse + p95) - PASS (p95 verified; Lighthouse >=95 on provided-throttling production run)
 - 14.15 Privacy & security - PASS (password redaction + no password persistence covered by automated tests)
 - 14.16 Testing - PASS (worker tests now include per-sample inspect/fill snapshots + automated pdf.js, Chrome viewer, and mutool rendering checks)
-- 14.17 Deployment - PARTIAL PASS (tag-triggered release path exercised and GHCR image tags verified; final release workflow success + hosted production URL run still pending)
+- 14.17 Deployment - PARTIAL PASS (tag-triggered release workflow success + GHCR image publish verified; hosted production URL checks still pending)
 - 14.18 Docs - PASS (README includes screenshot + self-host verification)
 - 14.19 SEO sub-routes - PASS
 - 14.20 Acceptance fixtures (A1/A2/A3) - PARTIAL PASS (A1/A2/A3 automated checks passing; macOS Preview confirmation still pending)
@@ -70,4 +71,3 @@ Current status by checklist area:
 
 1. Complete cross-viewer manual confirmation for A1 in macOS Preview.
 2. Verify hosted production URLs (`https://pdf-forms...` and `https://api.pdf-forms.../healthz`) with `verify_hosted.py`.
-3. Tag a release (`v*`) and confirm GHCR publishes `acroform-filler-worker` and `acroform-filler-web` images.
