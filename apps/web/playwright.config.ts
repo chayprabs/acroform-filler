@@ -8,13 +8,13 @@ export default defineConfig({
   retries: 0,
   reporter: "list",
   use: {
-    baseURL: "http://127.0.0.1:3000",
+    baseURL: "http://127.0.0.1:3110",
     trace: "on-first-retry",
   },
   webServer: {
-    command: "pnpm --filter @pdf-forms/web dev --port 3000",
-    url: "http://127.0.0.1:3000",
-    reuseExistingServer: true,
+    command: "pnpm dev --port 3110",
+    url: "http://127.0.0.1:3110",
+    reuseExistingServer: false,
     timeout: 120_000,
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],

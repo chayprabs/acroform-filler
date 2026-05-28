@@ -24,6 +24,7 @@ Commands run in this cycle:
 - Route checks on production server (`http://127.0.0.1:3100`) - PASS for `/pdf-form-fill`, `/pdf-flatten`, `/fdf-to-pdf`, `/xfdf-to-pdf`, `/w9-fill-online`, `/i9-fill-online`
 - `python -m pytest` (worker) - PASS (`17 passed`), including password redaction, metadata scrubbing, sample inspect snapshots, and sample fill snapshots
 - `pnpm dlx lighthouse http://127.0.0.1:3100 --throttling-method=provided` - PASS (`96/100/100/100`)
+- `pnpm --filter @pdf-forms/web test:e2e -- tests/e2e/seo-routes.spec.ts` - PASS (all 6 required SEO routes return 200 with expected page heading)
 
 Targeted runtime checks:
 
