@@ -21,6 +21,7 @@ playwright-report/
 test-results/
 lighthouse-report*.json
 run-web.log
+run-web-*.log
 
 # Python artifacts
 __pycache__/
