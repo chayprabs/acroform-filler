@@ -19,6 +19,7 @@ Commands run in this cycle:
 - `python scripts/verify_renderers.py --skip-mutool` (host) - PASS for pdf.js rendering sanity (`nonWhite` pixels > threshold)
 - `docker compose exec -T worker python scripts/verify_renderers.py --skip-pdfjs` - PASS for `mutool draw` rendering sanity (`exitCode=0`, text extracted)
 - Route checks on production server (`http://127.0.0.1:3100`) - PASS for `/pdf-form-fill`, `/pdf-flatten`, `/fdf-to-pdf`, `/xfdf-to-pdf`, `/w9-fill-online`, `/i9-fill-online`
+- `python -m pytest` (worker) - PASS (`14 passed`), including password redaction and metadata scrubbing tests
 
 Targeted runtime checks:
 
@@ -32,6 +33,7 @@ Targeted runtime checks:
 - Docker compose runtime check: both `worker` and `web` containers up; web served on `http://127.0.0.1:3000`; worker health returned `{"status":"ok"}` from container network
 - Renderer checks: pdf.js script returned `{ok: true, nonWhite: 157465}` and container mutool check returned `{ok: true, textLength: 5771}`
 - SEO route status: all required PRD routes returned `HTTP 200` on local production runtime
+- Password handling evidence: redaction filter masks `password/passwd/pwd` tokens and persisted job metadata contains no password fields
 
 ## Section 14 status snapshot
 
@@ -42,7 +44,7 @@ Current status by checklist area:
 - 14.3 Local run (`docker compose up`) - PASS
 - 14.4-14.13 Functional/UI - PARTIAL PASS (core implemented; full e2e fixture proof still pending)
 - 14.14 Non-functional (Lighthouse + p95) - PARTIAL PASS (p95 verified; Lighthouse desktop preset verified, mobile preset still below target)
-- 14.15 Privacy & security - PARTIAL PASS (password not persisted path implemented; explicit log audit pending)
+- 14.15 Privacy & security - PASS (password redaction + no password persistence covered by automated tests)
 - 14.16 Testing - PASS (worker tests + automated pdf.js and mutool rendering checks recorded)
 - 14.17 Deployment - PARTIAL PASS (local container images build successfully; hosted URL checks still pending)
 - 14.18 Docs - PASS (README/governance/security docs added)
