@@ -8,6 +8,7 @@ import socket
 import sys
 import urllib.error
 import urllib.request
+from pathlib import Path
 from urllib.parse import urlparse
 
 
@@ -59,6 +60,7 @@ if __name__ == "__main__":
     parser.add_argument("--api-url", required=False, help="Hosted API health URL (e.g. https://api.pdf-forms.example/healthz)")
     parser.add_argument("--derive-api-from-web", action="store_true")
     parser.add_argument("--allow-missing", action="store_true")
+    parser.add_argument("--output", help="Optional path to write JSON report")
     parser.add_argument("--timeout", type=float, default=10.0)
     args = parser.parse_args()
 
@@ -73,6 +75,10 @@ if __name__ == "__main__":
             "skipped": args.allow_missing,
             "reason": "Missing web/api URL. Provide args or env vars PDF_FORMS_WEB_URL and PDF_FORMS_API_URL.",
         }
+        if args.output:
+            output_path = Path(args.output)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
         print(json.dumps(report, indent=2))
         sys.exit(0 if args.allow_missing else 2)
 
@@ -88,5 +94,9 @@ if __name__ == "__main__":
 
     report = {"web": web, "api": api, "tls": tls}
     report["ok"] = bool(web.get("ok")) and bool(api.get("ok")) and bool(tls["web"].get("ok")) and bool(tls["api"].get("ok"))
+    if args.output:
+        output_path = Path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps(report, indent=2))
     sys.exit(0 if report["ok"] else 1)

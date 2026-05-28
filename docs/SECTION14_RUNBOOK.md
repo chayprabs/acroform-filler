@@ -28,6 +28,7 @@ CI wiring:
   - `PDF_FORMS_WEB_URL`
   - `PDF_FORMS_API_URL`
 - `release.yml` runs hosted verification automatically on tags (and workflow_dispatch) using those vars or explicit inputs.
+- Release workflow uploads `hosted-verification` artifact containing `verify-hosted.json` for audit retention.
 
 ## 1.1) Local Section 14 audit bundle
 

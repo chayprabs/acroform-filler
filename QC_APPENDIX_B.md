@@ -27,6 +27,7 @@ Commands run in this cycle:
 - CI run `26604730507` (commit `74e1578`) - PASS for `web`, `worker`, and `qualification`; uploaded `section14-local-audit` artifact with `ok=true` and all audited steps passing (`pytest`, `p95`, `acceptance`, `renderers`, `seo_e2e`)
 - `.github/workflows/release.yml` now publishes GHCR images on tags and supports workflow-dispatch hosted verification inputs (`web_url`, `api_url`) - PASS (configuration evidence)
 - `.github/workflows/release.yml` verify-hosted job now accepts repo vars (`PDF_FORMS_WEB_URL`, `PDF_FORMS_API_URL`) and runs automatically on tag/dispatch with `--allow-missing` - PASS (configuration evidence)
+- Hosted verification now emits persisted JSON (`--output apps/worker/artifacts/hosted/verify-hosted.json`) and uploads `hosted-verification` workflow artifact for evidence retention
 - `python apps/worker/scripts/verify_release_artifacts.py --repo chayprabs/acroform-filler --tag v0.0.0-test` - PASS for verification path (script correctly reports missing release run/packages when tag is absent)
 - `git tag v0.1.0-rc.1 && git push origin v0.1.0-rc.1` - PARTIAL PASS: Release workflow executed, `publish-images` succeeded, `build` failed due pnpm version conflict (fixed in workflow for next tag run)
 - `git tag v0.1.0-rc.2 && git push origin v0.1.0-rc.2` - PARTIAL PASS: Release workflow executed, `publish-images` succeeded with verifiable tags (`ghcr.io/...:v0.1.0-rc.2`), `build` failed on editable install package discovery (fixed by explicit setuptools package config)
