@@ -3,7 +3,7 @@
 Tool: PdfForms (`acroform-filler`)  
 Section: 14 (Release Qualification Checklist)  
 Run date: 2026-05-29  
-Branch: `cursor/pdf-forms-build`
+Branch: `main`
 
 ## Evidence run summary
 
@@ -66,6 +66,8 @@ Targeted runtime checks:
 - Section 14 local audit aggregator added: `apps/worker/scripts/run_section14_local.py` consolidates pytest/p95/acceptance/render/SEO checks into one JSON output
 - Renderer verifier made cross-platform for CI (`pnpm` on Linux, `pnpm.cmd` on Windows) to avoid false negatives in qualification job
 - Chrome viewer verifier now retries screenshot capture and uses stable render thresholding to reduce CI flake-induced false negatives
+- Main branch CI run `26605767600` (commit `4b7cfb1`) - PASS for `worker`, `web`, and `qualification`, preserving green checks after UI workflow polish
+- UI polish pass on `main` improves minimal flow clarity: explicit 5-step workflow strip, explicit JSON apply action, and schema export control
 - Docker host status: local `docker compose up -d` currently VERIFY-DEFERRED due host API error (`dockerDesktopLinuxEngine v1.54 ... 500`), not app stack failure
 - Docker host status (latest retry): `docker compose up -d` still VERIFY-DEFERRED due Docker Desktop API error (`/images/acroform-filler-web/json` returned 500), not app boot/runtime stack failure
 
