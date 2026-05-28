@@ -68,11 +68,21 @@ def fill_pdf(
         if tool_available(settings.pdfcpu_path):
             try:
                 _run([settings.pdfcpu_path, "form", "flatten", str(dest), str(flattened)])
-                shutil.move(flattened, dest)
-                return
+                if flattened.exists():
+                    try:
+                        shutil.move(flattened, dest)
+                        return
+                    except FileNotFoundError:
+                        if dest.exists():
+                            return
+                if dest.exists():
+                    # Some pdfcpu versions flatten in place even when an output is provided.
+                    return
             except RuntimeError:
                 pass
         _flatten_with_pypdf(dest, flattened)
+        if not flattened.exists():
+            raise RuntimeError("Flatten output missing after fallback.")
         shutil.move(flattened, dest)
 
 

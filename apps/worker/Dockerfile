@@ -5,7 +5,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PDF_FORMS_SAMPLES_DIR=/app/samples
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends qpdf curl ca-certificates golang-go \
+  && apt-get install -y --no-install-recommends qpdf curl ca-certificates golang-go mupdf-tools \
   && rm -rf /var/lib/apt/lists/*
 
 RUN GOBIN=/usr/local/bin go install github.com/pdfcpu/pdfcpu/cmd/pdfcpu@latest
