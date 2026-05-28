@@ -68,6 +68,7 @@ Targeted runtime checks:
 - Chrome viewer verifier now retries screenshot capture and uses stable render thresholding to reduce CI flake-induced false negatives
 - Main branch CI run `26605767600` (commit `4b7cfb1`) - PASS for `worker`, `web`, and `qualification`, preserving green checks after UI workflow polish
 - UI polish pass on `main` improves minimal flow clarity: explicit 5-step workflow strip, explicit JSON apply action, and schema export control
+- GitHub Actions stack upgraded to current majors (`checkout@v5`, `setup-node@v6`, `setup-python@v6`, `pnpm/action-setup@v6`, `upload-artifact@v5`, `codeql-action@v4`) and validated by green CI/CodeQL on `main` (`26606216574`, `26606216586`)
 - Docker host status: local `docker compose up -d` currently VERIFY-DEFERRED due host API error (`dockerDesktopLinuxEngine v1.54 ... 500`), not app stack failure
 - Docker host status (latest retry): `docker compose up -d` still VERIFY-DEFERRED due Docker Desktop API error (`/images/acroform-filler-web/json` returned 500), not app boot/runtime stack failure
 
