@@ -22,6 +22,7 @@ Commands run in this cycle:
 - `python apps/worker/scripts/verify_hosted.py --web-url https://github.com --api-url https://api.github.com` - PASS (HTTP 200 + valid TLS verification path)
 - `python apps/worker/scripts/verify_hosted.py --allow-missing` - PASS for CI safety path (script reports skipped with explicit reason when hosted URLs are not configured)
 - `gh workflow run Release --ref cursor/pdf-forms-build -f web_url=https://github.com -f api_url=https://api.github.com` + run `26603999151` - PASS (`verify-hosted` job succeeded and emitted `ok=true` JSON in logs)
+- `docker compose config` - PASS (compose file validates and resolves service graph/env/ports)
 - `.github/workflows/release.yml` now publishes GHCR images on tags and supports workflow-dispatch hosted verification inputs (`web_url`, `api_url`) - PASS (configuration evidence)
 - `.github/workflows/release.yml` verify-hosted job now accepts repo vars (`PDF_FORMS_WEB_URL`, `PDF_FORMS_API_URL`) and runs automatically on tag/dispatch with `--allow-missing` - PASS (configuration evidence)
 - `python apps/worker/scripts/verify_release_artifacts.py --repo chayprabs/acroform-filler --tag v0.0.0-test` - PASS for verification path (script correctly reports missing release run/packages when tag is absent)
@@ -54,6 +55,7 @@ Targeted runtime checks:
 - Qualification runbook added: `docs/SECTION14_RUNBOOK.md` with exact commands for hosted checks, release tag verification, and macOS Preview evidence capture
 - A1 evidence bundle generator added: `apps/worker/scripts/generate_a1_evidence.py` writes deterministic artifacts under `apps/worker/artifacts/a1-evidence/`
 - Docker host status: local `docker compose up -d` currently VERIFY-DEFERRED due host API error (`dockerDesktopLinuxEngine v1.54 ... 500`), not app stack failure
+- Docker host status (latest retry): `docker compose up -d` still VERIFY-DEFERRED due Docker Desktop API error (`/images/acroform-filler-web/json` returned 500), not app boot/runtime stack failure
 
 ## Section 14 status snapshot
 
