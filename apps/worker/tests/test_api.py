@@ -19,8 +19,10 @@ def _client_with_tmp_store(monkeypatch, tmp_path: Path) -> TestClient:
 
 def test_inspect_returns_schema(monkeypatch, tmp_path: Path) -> None:
     client = _client_with_tmp_store(monkeypatch, tmp_path)
+    def fail_repair(source: Path, dest: Path) -> None:
+        raise RuntimeError("should not repair")
 
-    monkeypatch.setattr("app.main.repair_pdf", lambda source, dest: dest.write_bytes(source.read_bytes()))
+    monkeypatch.setattr("app.main.repair_pdf", fail_repair)
 
     def fake_inspect(data: bytes, password: str | None = None):
         assert data
@@ -56,6 +58,30 @@ def test_inspect_returns_schema(monkeypatch, tmp_path: Path) -> None:
     payload = response.json()
     assert payload["jobId"]
     assert payload["fields"][0]["name"] == "full_name"
+
+
+def test_inspect_retries_after_repair_on_invalid_pdf(monkeypatch, tmp_path: Path) -> None:
+    client = _client_with_tmp_store(monkeypatch, tmp_path)
+    call_count = {"count": 0}
+
+    def fake_inspect(data: bytes, password: str | None = None):
+        call_count["count"] += 1
+        if call_count["count"] == 1:
+            raise ValueError("400_PDF_INVALID")
+        return {
+            "fields": [],
+            "pageCount": 1,
+            "hasXfa": False,
+            "xfaConvertible": False,
+            "warnings": [],
+        }
+
+    monkeypatch.setattr("app.main.inspect_pdf", fake_inspect)
+    monkeypatch.setattr("app.main.repair_pdf", lambda source, dest: dest.write_bytes(source.read_bytes()))
+
+    response = client.post("/v1/inspect", files={"file": ("sample.pdf", b"%PDF-1.4 test", "application/pdf")})
+    assert response.status_code == 200
+    assert call_count["count"] == 2
 
 
 def test_samples_endpoint_lists_and_serves_files(monkeypatch, tmp_path: Path) -> None:

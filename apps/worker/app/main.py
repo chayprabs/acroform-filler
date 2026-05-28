@@ -146,20 +146,28 @@ async def inspect_endpoint(
     job = job_store.create()
     source_path = job_store.artifact_path(job, "source.pdf")
     source_path.write_bytes(payload)
-
-    repaired_path = job_store.artifact_path(job, "repaired.pdf")
-    try:
-        repair_pdf(source_path, repaired_path)
-        inspect_target = repaired_path
-    except RuntimeError:
-        inspect_target = source_path
+    inspect_target = source_path
+    inspect_payload = payload
 
     try:
-        result = inspect_pdf(inspect_target.read_bytes(), password=password)
+        result = inspect_pdf(inspect_payload, password=password)
     except ValueError as exc:
         code = str(exc)
+        if code == "400_PDF_INVALID":
+            repaired_path = job_store.artifact_path(job, "repaired.pdf")
+            try:
+                repair_pdf(source_path, repaired_path)
+            except RuntimeError:
+                _raise_code(code)
+            inspect_target = repaired_path
+            inspect_payload = repaired_path.read_bytes()
+            try:
+                result = inspect_pdf(inspect_payload, password=password)
+                code = ""
+            except ValueError as repaired_exc:
+                code = str(repaired_exc)
         if code == "409_XFA_NOT_CONVERTIBLE":
-            converted = convert_xfa_to_acroform(inspect_target.read_bytes(), password=password)
+            converted = convert_xfa_to_acroform(inspect_payload, password=password)
             if converted:
                 converted_path = job_store.artifact_path(job, "xfa-converted.pdf")
                 converted_path.write_bytes(converted)
@@ -171,7 +179,7 @@ async def inspect_endpoint(
                     _raise_code(code)
             else:
                 _raise_code(code)
-        else:
+        elif code:
             _raise_code(code)
 
     job.source_pdf = inspect_target

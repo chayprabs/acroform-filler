@@ -11,7 +11,8 @@ Commands run in this cycle:
 
 - `pnpm -r typecheck` (workspace typecheck) - PASS
 - `pnpm --filter @pdf-forms/web build` (web production build) - PASS
-- `python -m pytest` in `apps/worker` - PASS (`10 passed`)
+- `python -m pytest` in `apps/worker` - PASS (`11 passed`)
+- `python scripts/measure_p95.py --sample samples/w9.pdf --iterations 20` - PASS for inspect, PASS for fill+flatten threshold
 
 Targeted runtime checks:
 
@@ -19,6 +20,7 @@ Targeted runtime checks:
 - `/v1/import` JSON/FDF/XFDF parsing covered by API tests - PASS
 - `/v1/batch` with 100 CSV rows (mixed valid/missing source) covered by API test with deterministic output naming - PASS
 - XFA-only inspect friendly error (`409_XFA_NOT_CONVERTIBLE`) and sidecar conversion attempt path covered by API tests - PASS
+- p95 measurements (local TestClient run): inspect `96.14ms`, fill+flatten `3315.06ms` - PASS against thresholds (`<=2000ms`, `<=5000ms`)
 
 ## Section 14 status snapshot
 
