@@ -50,13 +50,24 @@ try {
   gotoError = error;
 }
 await page.waitForTimeout(1500);
+try {
+  await page.waitForLoadState("networkidle", { timeout: 5000 });
+} catch {
+  // Chrome's built-in PDF viewer does not always settle into networkidle in CI.
+}
 
 const finalUrl = page.url();
 let shot = Buffer.alloc(0);
+let captureError = null;
 // Retry capture because Chrome PDF viewer sometimes paints after initial navigation in CI.
 for (let i = 0; i < 5; i += 1) {
-  shot = await page.screenshot({ fullPage: true });
-  if (shot.length > 5000) break;
+  try {
+    shot = await page.screenshot({ fullPage: true });
+    captureError = null;
+  } catch (error) {
+    captureError = error;
+  }
+  if (shot.length > 5000 && !captureError) break;
   await page.waitForTimeout(700);
 }
 const domInfo = await page.evaluate(() => ({
@@ -71,7 +82,7 @@ await context.close();
 await browser.close();
 server.close();
 
-const ok = !gotoError && !downloadStarted && shot.length > 5000;
+const ok = !gotoError && !captureError && !downloadStarted && shot.length > 5000;
 const result = {
   ok,
   headed,
@@ -81,6 +92,7 @@ const result = {
   downloadStarted,
   domInfo,
   error: gotoError ? String(gotoError.message || gotoError) : null,
+  captureError: captureError ? String(captureError.message || captureError) : null,
 };
 console.log(JSON.stringify(result, null, 2));
 process.exit(ok ? 0 : 1);
