@@ -39,6 +39,16 @@ export default function HomePage() {
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [regenerateAppearance, setRegenerateAppearance] = useState(true);
+  const [batchZipFile, setBatchZipFile] = useState<File | null>(null);
+  const [batchCsvFile, setBatchCsvFile] = useState<File | null>(null);
+  const [batchDownloadUrl, setBatchDownloadUrl] = useState<string | null>(null);
+  const [batchSummary, setBatchSummary] = useState<{
+    count: number;
+    requested: number;
+    skipped: number;
+    errors: number;
+  } | null>(null);
 
   const groupedFields = useMemo(() => {
     const map = new Map<number, PdfField[]>();
@@ -149,7 +159,7 @@ export default function HomePage() {
           body: JSON.stringify({
             jobId: inspectResult.jobId,
             values,
-            regenerateAppearance: true,
+            regenerateAppearance,
             flatten,
           }),
         },
@@ -158,6 +168,42 @@ export default function HomePage() {
       setDownloadUrl(`${WORKER_URL}${response.artifact.downloadUrl}`);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Fill failed.");
+    } finally {
+      setLoading(null);
+    }
+  }
+
+  async function runBatch() {
+    if (!batchZipFile || !batchCsvFile) {
+      setError("Select both a ZIP of PDFs and a CSV mapping file.");
+      return;
+    }
+    setLoading("Running batch...");
+    setError(null);
+    setBatchSummary(null);
+    setBatchDownloadUrl(null);
+    const form = new FormData();
+    form.append("pdf_zip", batchZipFile);
+    form.append("csv_mapping", batchCsvFile);
+    form.append("regenerate_appearance", regenerateAppearance ? "true" : "false");
+    form.append("flatten", "true");
+    try {
+      const response = await callWorker<{
+        artifact: { downloadUrl: string };
+        count: number;
+        requested: number;
+        skipped: Array<{ reason: string }>;
+        errors: Array<{ code: string }>;
+      }>("/v1/batch", { method: "POST", body: form });
+      setBatchDownloadUrl(`${WORKER_URL}${response.artifact.downloadUrl}`);
+      setBatchSummary({
+        count: response.count,
+        requested: response.requested,
+        skipped: response.skipped.length,
+        errors: response.errors.length,
+      });
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Batch failed.");
     } finally {
       setLoading(null);
     }
@@ -324,6 +370,52 @@ export default function HomePage() {
             </div>
 
             <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+              <h2 className="mb-2 text-sm font-semibold">Batch (ZIP + CSV)</h2>
+              <div className="grid gap-2">
+                <label className="text-sm">
+                  PDF ZIP
+                  <input
+                    type="file"
+                    accept=".zip,application/zip"
+                    onChange={(event) => setBatchZipFile(event.target.files?.[0] ?? null)}
+                  />
+                </label>
+                <label className="text-sm">
+                  CSV mapping
+                  <input
+                    type="file"
+                    accept=".csv,text/csv"
+                    onChange={(event) => setBatchCsvFile(event.target.files?.[0] ?? null)}
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="rounded-md bg-violet-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+                  disabled={loading !== null}
+                  onClick={() => void runBatch()}
+                >
+                  Run batch
+                </button>
+                {batchSummary ? (
+                  <p className="text-xs text-slate-600 dark:text-slate-300">
+                    Processed {batchSummary.count}/{batchSummary.requested}, skipped {batchSummary.skipped}, errors{" "}
+                    {batchSummary.errors}
+                  </p>
+                ) : null}
+                {batchDownloadUrl ? (
+                  <a
+                    className="text-sm text-blue-600 hover:underline"
+                    href={batchDownloadUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Download batch ZIP
+                  </a>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
               <h2 className="mb-2 text-sm font-semibold">Validation issues</h2>
               {issues.length ? (
                 <ul className="grid gap-2 text-sm">
@@ -341,6 +433,14 @@ export default function HomePage() {
         </section>
 
         <footer className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+          <label className="mr-2 flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={regenerateAppearance}
+              onChange={(event) => setRegenerateAppearance(event.target.checked)}
+            />
+            Regenerate appearance streams
+          </label>
           <button
             type="button"
             className="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-slate-200 dark:text-slate-900"
