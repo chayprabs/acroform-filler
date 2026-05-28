@@ -70,11 +70,18 @@ if __name__ == "__main__":
         checks.append({"id": "14.17.hosted_urls", "status": "pass" if hosted["ok"] else "fail", "evidence": hosted_payload})
 
     preview_shot = repo_root / "docs/screenshots/a1-preview-macos.png"
+    preview_manifest = repo_root / "apps/worker/artifacts/a1-evidence/preview-evidence.json"
+    manifest_payload: dict[str, object] | None = None
+    if preview_manifest.exists():
+        try:
+            manifest_payload = json.loads(preview_manifest.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            manifest_payload = {"ok": False, "reason": "invalid preview manifest JSON"}
     checks.append(
         {
             "id": "14.20.A1.preview",
             "status": "pass" if preview_shot.exists() else "blocked",
-            "evidence": str(preview_shot) if preview_shot.exists() else "missing macOS Preview screenshot",
+            "evidence": manifest_payload if manifest_payload is not None else (str(preview_shot) if preview_shot.exists() else "missing macOS Preview screenshot"),
         }
     )
 

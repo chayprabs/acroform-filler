@@ -76,6 +76,7 @@ Section 14 local audit helper: `python apps/worker/scripts/run_section14_local.p
 Section 14 verdict report: `python apps/worker/scripts/section14_report.py`.
 Hosted URL variable helper: `python apps/worker/scripts/configure_hosted_urls.py --web-url <...> --api-url <...>`.
 Qualified-PR helper (gated): `python apps/worker/scripts/create_section14_pr.py`.
+Preview evidence helper: `python apps/worker/scripts/record_preview_evidence.py --screenshot <path>`.
 
 ## Quality notes
 

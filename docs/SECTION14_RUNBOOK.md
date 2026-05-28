@@ -112,6 +112,17 @@ This writes:
 4. Confirm text and checkbox values are visible.
 5. Capture one screenshot and add it to `docs/screenshots/`.
 
+Optional helper on macOS machine:
+
+```bash
+python apps/worker/scripts/record_preview_evidence.py --screenshot /absolute/path/to/preview.png
+```
+
+This stores:
+
+- `docs/screenshots/a1-preview-macos.png`
+- `apps/worker/artifacts/a1-evidence/preview-evidence.json`
+
 Attach screenshot path and `a1-evidence.json` summary to `QC_APPENDIX_B.md`.
 
 Only the macOS Preview confirmation remains manual after running the generator.
