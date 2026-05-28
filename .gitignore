@@ -10,3 +10,19 @@ CODEX_GOLD_PROMPTS.md
 CODEX_GOAL_PROMPTS.md
 QUALIFYING_CRITERIA.md
 [0-3][0-9]_*.md
+
+# Build artifacts
+node_modules/
+.next/
+dist/
+coverage/
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Env
+.env
+.env.local
+.env.*.local
