@@ -44,6 +44,16 @@ Output:
 
 This audit aggregates pytest, p95, acceptance, renderer checks, and SEO route e2e into one machine-readable report.
 
+For a compact qualification verdict report:
+
+```bash
+python apps/worker/scripts/section14_report.py
+```
+
+Output:
+
+- `apps/worker/artifacts/section14/section14-report.json`
+
 ## 2) Release artifact verification (14.17)
 
 1. Tag the branch:

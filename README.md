@@ -73,6 +73,7 @@ Section 14 release-gate runbook: `docs/SECTION14_RUNBOOK.md`.
 Release artifact verification helper: `python apps/worker/scripts/verify_release_artifacts.py --repo <owner>/acroform-filler --tag <vX.Y.Z>`.
 A1 evidence helper: `python apps/worker/scripts/generate_a1_evidence.py`.
 Section 14 local audit helper: `python apps/worker/scripts/run_section14_local.py --skip-hosted`.
+Section 14 verdict report: `python apps/worker/scripts/section14_report.py`.
 
 ## Quality notes
 
