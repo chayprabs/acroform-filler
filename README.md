@@ -68,6 +68,8 @@ python apps/worker/scripts/verify_hosted.py \
 
 The command fails non-zero unless both hosted endpoints return 2xx and both TLS certificates validate.
 
+Section 14 release-gate runbook: `docs/SECTION14_RUNBOOK.md`.
+
 ## Quality notes
 
 - Password inputs are request-scoped and not persisted.

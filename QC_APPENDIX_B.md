@@ -41,6 +41,7 @@ Targeted runtime checks:
 - Password handling evidence: redaction filter masks `password/passwd/pwd` tokens and persisted job metadata contains no password fields
 - Lighthouse (provided throttling) produced Performance `96`, Accessibility `100`, Best Practices `100`, SEO `100`
 - README evidence: screenshot added at `docs/screenshots/playground-home.png` and self-host verification command documented
+- Qualification runbook added: `docs/SECTION14_RUNBOOK.md` with exact commands for hosted checks, release tag verification, and macOS Preview evidence capture
 - Docker host status: local `docker compose up -d` currently VERIFY-DEFERRED due host API error (`dockerDesktopLinuxEngine v1.54 ... 500`), not app stack failure
 
 ## Section 14 status snapshot
