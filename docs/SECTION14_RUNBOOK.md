@@ -62,6 +62,17 @@ Output:
 
 - `apps/worker/artifacts/section14/section14-report.json`
 
+For final qualification with explicit hosted URLs and Preview evidence in one run:
+
+```bash
+python apps/worker/scripts/section14_report.py \
+  --repo <owner>/acroform-filler \
+  --tag <release-tag> \
+  --web-url https://pdf-forms.<your-domain> \
+  --api-url https://api.pdf-forms.<your-domain>/healthz \
+  --preview-screenshot /absolute/path/to/preview.png
+```
+
 When verdict becomes `QUALIFIED`, create the required PR title using:
 
 ```bash

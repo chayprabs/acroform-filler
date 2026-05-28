@@ -17,7 +17,9 @@ def _run(command: list[str], cwd: Path) -> tuple[int, str, str]:
 def _load_or_run_local_audit(repo_root: Path) -> tuple[dict[str, object], str]:
     audit_path = repo_root / "apps/worker/artifacts/section14/local-audit.json"
     if audit_path.exists():
-        return json.loads(audit_path.read_text(encoding="utf-8")), "existing"
+        existing = json.loads(audit_path.read_text(encoding="utf-8"))
+        if bool(existing.get("ok")):
+            return existing, "existing"
     code, out, _ = _run(
         [sys.executable, "apps/worker/scripts/run_section14_local.py", "--skip-hosted"],
         repo_root,
@@ -37,13 +39,36 @@ def _check_release(repo_root: Path, repo: str, tag: str) -> dict[str, object]:
     return {"ok": code == 0 and bool(payload.get("ok")), "payload": payload}
 
 
-def _check_hosted(repo_root: Path) -> dict[str, object]:
-    code, out, _ = _run(
-        [sys.executable, "apps/worker/scripts/verify_hosted.py", "--allow-missing", "--derive-api-from-web"],
-        repo_root,
-    )
+def _check_hosted(
+    repo_root: Path,
+    web_url: str | None,
+    api_url: str | None,
+    allow_missing: bool,
+) -> dict[str, object]:
+    command = [sys.executable, "apps/worker/scripts/verify_hosted.py", "--derive-api-from-web"]
+    if allow_missing:
+        command.append("--allow-missing")
+    if web_url:
+        command.extend(["--web-url", web_url])
+    if api_url:
+        command.extend(["--api-url", api_url])
+    code, out, _ = _run(command, repo_root)
     payload = json.loads(out)
     return {"ok": code == 0 and bool(payload.get("ok")), "payload": payload}
+
+
+def _ingest_preview_screenshot(repo_root: Path, screenshot: str | None) -> None:
+    if not screenshot:
+        return
+    command = [
+        sys.executable,
+        "apps/worker/scripts/record_preview_evidence.py",
+        "--screenshot",
+        screenshot,
+    ]
+    code, _, _ = _run(command, repo_root)
+    if code != 0:
+        raise RuntimeError("record_preview_evidence.py failed")
 
 
 if __name__ == "__main__":
@@ -51,12 +76,22 @@ if __name__ == "__main__":
     parser.add_argument("--repo", default="chayprabs/acroform-filler")
     parser.add_argument("--tag", default="v0.1.0-rc.3")
     parser.add_argument("--output", default="apps/worker/artifacts/section14/section14-report.json")
+    parser.add_argument("--web-url", help="Hosted web URL override for Section 14 verification")
+    parser.add_argument("--api-url", help="Hosted API URL override for Section 14 verification")
+    parser.add_argument("--preview-screenshot", help="Path to macOS Preview screenshot to ingest before verdict")
+    parser.add_argument("--strict-hosted", action="store_true", help="Fail instead of verify-deferred when hosted URLs are missing")
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[3]
+    _ingest_preview_screenshot(repo_root, args.preview_screenshot)
     local_audit, local_source = _load_or_run_local_audit(repo_root)
     release = _check_release(repo_root, args.repo, args.tag)
-    hosted = _check_hosted(repo_root)
+    hosted = _check_hosted(
+        repo_root=repo_root,
+        web_url=args.web_url,
+        api_url=args.api_url,
+        allow_missing=not args.strict_hosted,
+    )
 
     checks: list[dict[str, object]] = []
     checks.append({"id": "14.local_automation", "status": "pass" if local_audit.get("ok") else "fail", "evidence": local_source})
@@ -96,6 +131,12 @@ if __name__ == "__main__":
     elif counts["verify-deferred"] > 0:
         verdict = "VERIFY-DEFERRED"
 
+    remaining_actions: list[str] = []
+    if checks[2]["status"] != "pass":
+        remaining_actions.append("Set PDF_FORMS_WEB_URL and PDF_FORMS_API_URL (or pass --web-url/--api-url) and rerun section14_report.py.")
+    if checks[3]["status"] != "pass":
+        remaining_actions.append("Capture macOS Preview screenshot and pass --preview-screenshot to section14_report.py.")
+
     report = {
         "tool": "PdfForms",
         "section": "14",
@@ -104,10 +145,7 @@ if __name__ == "__main__":
         "counts": counts,
         "checks": checks,
         "verdict": verdict,
-        "remainingActions": [
-            "Set PDF_FORMS_WEB_URL and PDF_FORMS_API_URL to production domains and rerun release verify-hosted.",
-            "Capture macOS Preview screenshot and ingest with record_preview_evidence.py.",
-        ],
+        "remainingActions": remaining_actions,
     }
 
     out_path = (repo_root / args.output).resolve()
