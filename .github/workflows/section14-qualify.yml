@@ -54,6 +54,8 @@ jobs:
           --web-url "${{ inputs.web_url }}"
           --api-url "${{ inputs.api_url }}"
           ${{ inputs.strict_hosted && '--strict-hosted' || '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
       - name: Render verdict summary
         run: |
           python - <<'PY'
