@@ -59,7 +59,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--sample", default="samples/w9.pdf")
     parser.add_argument("--iterations", type=int, default=20)
+    parser.add_argument("--max-inspect-ms", type=float, default=None)
+    parser.add_argument("--max-fill-ms", type=float, default=None)
     args = parser.parse_args()
 
     metrics = run(Path(args.sample), args.iterations)
     print(json.dumps(metrics, indent=2))
+    if args.max_inspect_ms is not None and float(metrics["inspect_p95_ms"]) > args.max_inspect_ms:
+        raise SystemExit(1)
+    if args.max_fill_ms is not None and float(metrics["fill_flatten_p95_ms"]) > args.max_fill_ms:
+        raise SystemExit(1)
