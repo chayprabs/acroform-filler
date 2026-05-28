@@ -1,0 +1,20 @@
+services:
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    environment:
+      PDF_FORMS_ARTIFACT_SECRET: dev-secret-change-me
+      PDF_FORMS_JOB_TTL_SECONDS: 3600
+      PDF_FORMS_MAX_UPLOAD_BYTES: 26214400
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      NEXT_PUBLIC_WORKER_URL: http://worker:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - worker

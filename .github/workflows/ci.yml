@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r typecheck
+      - run: pnpm --filter @pdf-forms/web build
+
+  worker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ./apps/worker[dev]
+      - run: python -m pytest
+        working-directory: apps/worker
+
+  qualification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: sudo apt-get update && sudo apt-get install -y qpdf mupdf-tools xvfb
+      - run: pnpm install --frozen-lockfile
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ./apps/worker[dev]
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: python scripts/measure_p95.py --sample samples/w9.pdf --iterations 10 --max-inspect-ms 2000 --max-fill-ms 5000
+        working-directory: apps/worker
+      - run: python scripts/run_acceptance.py
+        working-directory: apps/worker
+      - run: python scripts/verify_renderers.py
+        working-directory: apps/worker
+      - run: python apps/worker/scripts/run_section14_local.py --skip-hosted
+      - run: python apps/worker/scripts/section14_report.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: section14-local-audit
+          path: apps/worker/artifacts/section14/local-audit.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: section14-verdict
+          path: apps/worker/artifacts/section14/section14-report.json

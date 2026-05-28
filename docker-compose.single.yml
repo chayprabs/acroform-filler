@@ -1,0 +1,10 @@
+services:
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    environment:
+      PDF_FORMS_ARTIFACT_SECRET: dev-secret-change-me
+      PDF_FORMS_JOB_TTL_SECONDS: 3600
+    ports:
+      - "8001:8000"

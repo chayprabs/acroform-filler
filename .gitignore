@@ -10,3 +10,27 @@ CODEX_GOLD_PROMPTS.md
 CODEX_GOAL_PROMPTS.md
 QUALIFYING_CRITERIA.md
 [0-3][0-9]_*.md
+
+# Build artifacts
+node_modules/
+.next/
+dist/
+coverage/
+*.tsbuildinfo
+playwright-report/
+test-results/
+lighthouse-report*.json
+run-web.log
+run-web-*.log
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+apps/worker/artifacts/
+
+# Env
+.env
+.env.local
+.env.*.local
