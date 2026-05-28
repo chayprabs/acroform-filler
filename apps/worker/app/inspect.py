@@ -68,6 +68,69 @@ def _page_heights(reader: PdfReader) -> list[float]:
     return heights
 
 
+def _merge_widget_field(widget: dict[str, Any]) -> dict[str, Any]:
+    merged: dict[str, Any] = {}
+    parent = widget.get("/Parent")
+    parent_resolved = _resolve(parent) if parent else None
+    if isinstance(parent_resolved, dict):
+        merged.update(parent_resolved)
+    merged.update(widget)
+    return merged
+
+
+def _extract_annotation_fields(reader: PdfReader, heights: list[float]) -> list[dict[str, Any]]:
+    extracted: list[dict[str, Any]] = []
+    seen: set[tuple[str, int, tuple[float, float, float, float]]] = set()
+
+    for page_index, page in enumerate(reader.pages):
+        annots = page.get("/Annots")
+        if not annots:
+            continue
+        annots_resolved = _resolve(annots)
+        if not isinstance(annots_resolved, list):
+            continue
+        page_height = heights[page_index] if page_index < len(heights) else heights[0]
+        for annot_obj in annots_resolved:
+            annot = _resolve(annot_obj)
+            if not isinstance(annot, dict):
+                continue
+            if str(annot.get("/Subtype")) != "/Widget":
+                continue
+
+            field = _merge_widget_field(annot)
+            name = field.get("/T")
+            if not name:
+                continue
+
+            flags = int(field.get(FieldDictionaryAttributes.Ff, 0))
+            value = field.get("/V", field.get("/AS"))
+            if value is not None:
+                value = str(_resolve(value))
+
+            bbox = _field_bbox(field, page_height)
+            key = (str(name), page_index + 1, tuple(bbox))
+            if key in seen:
+                continue
+            seen.add(key)
+
+            max_len = field.get("/MaxLen")
+            extracted.append(
+                {
+                    "name": str(name),
+                    "type": _field_type(field),
+                    "page": page_index + 1,
+                    "bbox": bbox,
+                    "value": value,
+                    "options": _field_options(field),
+                    "required": bool(flags & 2),
+                    "maxLength": int(max_len) if max_len is not None else None,
+                    "readonly": bool(flags & 1),
+                }
+            )
+
+    return extracted
+
+
 def detect_xfa(reader: PdfReader) -> tuple[bool, bool]:
     root = reader.trailer.get("/Root")
     if isinstance(root, IndirectObject):
@@ -150,6 +213,14 @@ def inspect_pdf(data: bytes, password: str | None = None) -> dict[str, Any]:
             walk(resolved)
     except Exception:
         warnings.append("Partial field extraction; some widgets may be missing.")
+
+    annotation_fields = _extract_annotation_fields(reader, heights)
+    if annotation_fields:
+        keyed = {(field["name"], field["page"], tuple(field["bbox"])): field for field in fields}
+        for field in annotation_fields:
+            key = (field["name"], field["page"], tuple(field["bbox"]))
+            if key not in keyed:
+                fields.append(field)
 
     if not fields and has_xfa and not xfa_convertible:
         raise ValueError("409_XFA_NOT_CONVERTIBLE")
