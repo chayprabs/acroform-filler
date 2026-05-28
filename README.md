@@ -2,6 +2,8 @@
 
 PdfForms is an AGPL-licensed PDF AcroForm tool to inspect fields, fill from JSON/FDF/XFDF/CSV, regenerate appearance streams, flatten forms, validate field values, and run batch ZIP workflows.
 
+![PdfForms playground](docs/screenshots/playground-home.png)
+
 ## Features
 
 - Field inspection (`/v1/inspect`) with name, type, options, required, max length, value, page, and bbox.
@@ -56,9 +58,18 @@ docker compose up --build
 Web: `http://localhost:3000`  
 Worker: `http://localhost:8000/healthz`
 
+## Self-host verification
+
+```bash
+python apps/worker/scripts/verify_hosted.py \
+  --web-url https://pdf-forms.your-domain.tld \
+  --api-url https://api.pdf-forms.your-domain.tld/healthz
+```
+
+The command fails non-zero unless both hosted endpoints return 2xx and both TLS certificates validate.
+
 ## Quality notes
 
 - Password inputs are request-scoped and not persisted.
 - Job artifacts are ephemeral and purged by TTL.
 - API errors use explicit codes (e.g. `401_PDF_PASSWORD_REQUIRED`, `409_XFA_NOT_CONVERTIBLE`).
-

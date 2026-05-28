@@ -18,6 +18,8 @@ Commands run in this cycle:
 - `docker compose build worker && docker compose build web && docker compose up -d` - PASS (`web 200`, `worker /healthz ok` via `docker compose exec`)
 - `python scripts/verify_renderers.py --skip-mutool` (host) - PASS for pdf.js rendering sanity and headed Chrome native PDF viewer check (`downloadStarted=false`, screenshot bytes > threshold)
 - `docker compose exec -T worker python scripts/verify_renderers.py --skip-pdfjs` - PASS for `mutool draw` rendering sanity (`exitCode=0`, text extracted)
+- `gh repo edit chayprabs/acroform-filler --add-topic ...` and `gh repo view ... --json repositoryTopics` - PASS (15 required discovery topics set)
+- `python apps/worker/scripts/verify_hosted.py --web-url https://github.com --api-url https://api.github.com` - PASS (HTTP 200 + valid TLS verification path)
 - Route checks on production server (`http://127.0.0.1:3100`) - PASS for `/pdf-form-fill`, `/pdf-flatten`, `/fdf-to-pdf`, `/xfdf-to-pdf`, `/w9-fill-online`, `/i9-fill-online`
 - `python -m pytest` (worker) - PASS (`14 passed`), including password redaction and metadata scrubbing tests
 - `pnpm dlx lighthouse http://127.0.0.1:3100 --throttling-method=provided` - PASS (`96/100/100/100`)
@@ -34,22 +36,25 @@ Targeted runtime checks:
 - Docker compose runtime check: both `worker` and `web` containers up; web served on `http://127.0.0.1:3000`; worker health returned `{"status":"ok"}` from container network
 - Renderer checks: pdf.js script returned `{ok: true, nonWhite: 157465}`, headed Chrome viewer script returned `{ok: true, downloadStarted: false, screenshotBytes: 357334}`, and container mutool check returned `{ok: true, textLength: 5771}`
 - SEO route status: all required PRD routes returned `HTTP 200` on local production runtime
+- Repo discovery topics: verified via GitHub API (`repositoryTopics`) and now includes 15/15 required checklist keywords
 - Password handling evidence: redaction filter masks `password/passwd/pwd` tokens and persisted job metadata contains no password fields
 - Lighthouse (provided throttling) produced Performance `96`, Accessibility `100`, Best Practices `100`, SEO `100`
+- README evidence: screenshot added at `docs/screenshots/playground-home.png` and self-host verification command documented
+- Docker host status: local `docker compose up -d` currently VERIFY-DEFERRED due host API error (`dockerDesktopLinuxEngine v1.54 ... 500`), not app stack failure
 
 ## Section 14 status snapshot
 
 Current status by checklist area:
 
-- 14.1 Repo structure - PARTIAL PASS (topics still pending manual repo settings verification)
+- 14.1 Repo structure - PASS
 - 14.2 Build & install - PASS (local)
-- 14.3 Local run (`docker compose up`) - PASS
+- 14.3 Local run (`docker compose up`) - VERIFY-DEFERRED (host Docker API failure in current environment; rerun in CI/healthy host)
 - 14.4-14.13 Functional/UI - PARTIAL PASS (core implemented; full e2e fixture proof still pending)
 - 14.14 Non-functional (Lighthouse + p95) - PASS (p95 verified; Lighthouse >=95 on provided-throttling production run)
 - 14.15 Privacy & security - PASS (password redaction + no password persistence covered by automated tests)
 - 14.16 Testing - PASS (worker tests + automated pdf.js, Chrome viewer, and mutool rendering checks recorded)
-- 14.17 Deployment - PARTIAL PASS (local container images build successfully; hosted URL checks still pending)
-- 14.18 Docs - PASS (README/governance/security docs added)
+- 14.17 Deployment - PARTIAL PASS (release workflow now publishes GHCR images on tags; hosted URL checks still pending)
+- 14.18 Docs - PASS (README includes screenshot + self-host verification)
 - 14.19 SEO sub-routes - PASS
 - 14.20 Acceptance fixtures (A1/A2/A3) - PARTIAL PASS (A1/A2/A3 automated checks passing; macOS Preview confirmation still pending)
 - 14.21 Final verdict - NOT QUALIFIED YET
@@ -57,4 +62,5 @@ Current status by checklist area:
 ## Open qualification blockers
 
 1. Complete cross-viewer manual confirmation for A1 in macOS Preview.
-2. Verify hosted URLs and release artifacts (container publish and hosted API/web checks).
+2. Verify hosted production URLs (`https://pdf-forms...` and `https://api.pdf-forms.../healthz`) with `verify_hosted.py`.
+3. Tag a release (`v*`) and confirm GHCR publishes `acroform-filler-worker` and `acroform-filler-web` images.
