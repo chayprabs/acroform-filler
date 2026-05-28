@@ -100,6 +100,37 @@ def test_import_json_file(monkeypatch, tmp_path: Path) -> None:
     assert response.json()["values"]["first_name"] == "Ada"
 
 
+def test_import_fdf_and_xfdf_files(monkeypatch, tmp_path: Path) -> None:
+    client = _client_with_tmp_store(monkeypatch, tmp_path)
+    fdf = b"%FDF-1.2\n1 0 obj<< /FDF << /Fields [<< /T (name) /V (Ada) >>] >> >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF"
+    xfdf = (
+        b'<?xml version="1.0" encoding="UTF-8"?>'
+        b'<xfdf xmlns="http://ns.adobe.com/xfdf/"><fields><field name="email"><value>a@example.com</value>'
+        b"</field></fields></xfdf>"
+    )
+
+    fdf_response = client.post("/v1/import", files={"file": ("values.fdf", fdf, "application/vnd.fdf")})
+    xfdf_response = client.post("/v1/import", files={"file": ("values.xfdf", xfdf, "application/xml")})
+
+    assert fdf_response.status_code == 200
+    assert xfdf_response.status_code == 200
+    assert fdf_response.json()["values"]["name"] == "Ada"
+    assert xfdf_response.json()["values"]["email"] == "a@example.com"
+
+
+def test_inspect_xfa_only_returns_friendly_error(monkeypatch, tmp_path: Path) -> None:
+    client = _client_with_tmp_store(monkeypatch, tmp_path)
+    monkeypatch.setattr("app.main.repair_pdf", lambda source, dest: dest.write_bytes(source.read_bytes()))
+    def fake_inspect(data: bytes, password: str | None = None):
+        raise ValueError("409_XFA_NOT_CONVERTIBLE")
+    monkeypatch.setattr("app.main.inspect_pdf", fake_inspect)
+
+    response = client.post("/v1/inspect", files={"file": ("xfa.pdf", b"%PDF-1.4 test", "application/pdf")})
+    assert response.status_code == 409
+    assert response.json()["detail"]["code"] == "409_XFA_NOT_CONVERTIBLE"
+    assert "XFA-only" in response.json()["detail"]["message"]
+
+
 def test_batch_returns_zip_artifact(monkeypatch, tmp_path: Path) -> None:
     client = _client_with_tmp_store(monkeypatch, tmp_path)
     monkeypatch.setattr("app.main.fill_pdf", lambda **kwargs: Path(kwargs["dest"]).write_bytes(b"%PDF-1.4 filled"))
@@ -118,3 +149,34 @@ def test_batch_returns_zip_artifact(monkeypatch, tmp_path: Path) -> None:
     )
     assert response.status_code == 200
     assert response.json()["count"] == 1
+    assert response.json()["requested"] == 1
+
+
+def test_batch_handles_missing_sources_and_large_rows(monkeypatch, tmp_path: Path) -> None:
+    client = _client_with_tmp_store(monkeypatch, tmp_path)
+    monkeypatch.setattr("app.main.fill_pdf", lambda **kwargs: Path(kwargs["dest"]).write_bytes(b"%PDF-1.4 filled"))
+
+    pdf_zip = io.BytesIO()
+    with zipfile.ZipFile(pdf_zip, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("forms/a.pdf", b"%PDF-1.4")
+
+    rows = ["source,name"]
+    for idx in range(1, 101):
+        source = "forms/a.pdf" if idx % 2 == 0 else f"missing-{idx}.pdf"
+        rows.append(f"{source},User {idx}")
+    csv_bytes = ("\n".join(rows) + "\n").encode("utf-8")
+
+    response = client.post(
+        "/v1/batch",
+        files={
+            "pdf_zip": ("inputs.zip", pdf_zip.getvalue(), "application/zip"),
+            "csv_mapping": ("map.csv", csv_bytes, "text/csv"),
+        },
+        data={"regenerate_appearance": "true", "flatten": "false"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["requested"] == 100
+    assert body["count"] == 50
+    assert len(body["skipped"]) == 50

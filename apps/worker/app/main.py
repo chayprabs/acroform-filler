@@ -72,6 +72,10 @@ def _normalize_values(values: dict[str, Any]) -> dict[str, str]:
     return normalized
 
 
+def _normalize_source_name(value: str) -> str:
+    return value.replace("\\", "/").lstrip("./")
+
+
 def _get_job_or_404(job_id: str) -> JobRecord:
     job = job_store.get(job_id)
     if not job:
@@ -225,33 +229,51 @@ async def batch_endpoint(
     zip_bytes = await pdf_zip.read()
     job = job_store.create()
     output_pairs: list[tuple[str, Path]] = []
+    skipped: list[dict[str, str]] = []
+    errors: list[dict[str, str]] = []
 
     with zipfile.ZipFile(BytesIO(zip_bytes)) as archive:
-        pdf_names = {item.filename for item in archive.infolist() if item.filename.lower().endswith(".pdf")}
-        for row in csv_rows:
-            source_name = row.get("source", "")
+        pdf_names = {_normalize_source_name(item.filename) for item in archive.infolist() if item.filename.lower().endswith(".pdf")}
+        for row_index, row in enumerate(csv_rows, start=1):
+            source_name = _normalize_source_name((row.get("source") or "").strip())
+            if not source_name:
+                skipped.append({"reason": "missing_source", "source": ""})
+                continue
             if source_name not in pdf_names:
+                skipped.append({"reason": "source_not_found", "source": source_name})
                 continue
             row_values = {key: value for key, value in row.items() if key != "source"}
             source_bytes = archive.read(source_name)
             source_path = job_store.artifact_path(job, f"batch-{Path(source_name).name}")
             source_path.write_bytes(source_bytes)
-            filled_name = f"filled-{Path(source_name).name}"
+            stem = Path(source_name).stem
+            suffix = Path(source_name).suffix or ".pdf"
+            filled_name = f"filled-{row_index:03d}-{stem}{suffix}"
             filled_path = job_store.artifact_path(job, filled_name)
-            fill_pdf(
-                source=source_path,
-                dest=filled_path,
-                values=_normalize_values(row_values),
-                regenerate_appearance=regenerate_appearance,
-                flatten=flatten,
-            )
+            try:
+                fill_pdf(
+                    source=source_path,
+                    dest=filled_path,
+                    values=_normalize_values(row_values),
+                    regenerate_appearance=regenerate_appearance,
+                    flatten=flatten,
+                )
+            except RuntimeError:
+                errors.append({"source": source_name, "code": "422_FIELD_VALUE_INVALID"})
+                continue
             output_pairs.append((filled_name, filled_path))
 
     artifact_name = f"batch-{int(time.time())}.zip"
     artifact_path = job_store.artifact_path(job, artifact_name)
     artifact_path.write_bytes(create_batch_zip(output_pairs))
     artifact = _artifact_response(job, artifact_name=artifact_name, filename="filled-batch.zip")
-    return {"artifact": artifact, "count": len(output_pairs)}
+    return {
+        "artifact": artifact,
+        "count": len(output_pairs),
+        "requested": len(csv_rows),
+        "skipped": skipped,
+        "errors": errors,
+    }
 
 
 @app.get("/v1/artifacts/{artifact_id}")
