@@ -1,0 +1,18 @@
+{
+  "i9.pdf": {
+    "pageCount": 4,
+    "fieldCount": 130
+  },
+  "multi-page.pdf": {
+    "pageCount": 2,
+    "fieldCount": 0
+  },
+  "registration.pdf": {
+    "pageCount": 1,
+    "fieldCount": 0
+  },
+  "w9.pdf": {
+    "pageCount": 6,
+    "fieldCount": 23
+  }
+}
