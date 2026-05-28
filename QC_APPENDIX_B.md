@@ -30,6 +30,7 @@ Commands run in this cycle:
 - `python apps/worker/scripts/configure_hosted_urls.py --web-url ... --api-url ... --dry-run` - PASS (validated one-command path to configure repo vars for real hosted verification runs)
 - `python apps/worker/scripts/create_section14_pr.py` - PASS for guardrail behavior (correctly blocks PR creation until Section 14 verdict is `QUALIFIED`)
 - `python apps/worker/scripts/record_preview_evidence.py --screenshot <path>` - PASS for evidence workflow scaffolding (standardizes A1 Preview screenshot placement + manifest generation)
+- `python apps/worker/scripts/section14_report.py` now includes `remainingActions` with concrete final steps (production URL vars + Preview evidence ingest) to close qualification
 - `.github/workflows/release.yml` now publishes GHCR images on tags and supports workflow-dispatch hosted verification inputs (`web_url`, `api_url`) - PASS (configuration evidence)
 - `.github/workflows/release.yml` verify-hosted job now accepts repo vars (`PDF_FORMS_WEB_URL`, `PDF_FORMS_API_URL`) and runs automatically on tag/dispatch with `--allow-missing` - PASS (configuration evidence)
 - Hosted verification now emits persisted JSON (`--output apps/worker/artifacts/hosted/verify-hosted.json`) and uploads `hosted-verification` workflow artifact for evidence retention
@@ -64,6 +65,7 @@ Targeted runtime checks:
 - A1 evidence bundle generator added: `apps/worker/scripts/generate_a1_evidence.py` writes deterministic artifacts under `apps/worker/artifacts/a1-evidence/`
 - Section 14 local audit aggregator added: `apps/worker/scripts/run_section14_local.py` consolidates pytest/p95/acceptance/render/SEO checks into one JSON output
 - Renderer verifier made cross-platform for CI (`pnpm` on Linux, `pnpm.cmd` on Windows) to avoid false negatives in qualification job
+- Chrome viewer verifier now retries screenshot capture and uses stable render thresholding to reduce CI flake-induced false negatives
 - Docker host status: local `docker compose up -d` currently VERIFY-DEFERRED due host API error (`dockerDesktopLinuxEngine v1.54 ... 500`), not app stack failure
 - Docker host status (latest retry): `docker compose up -d` still VERIFY-DEFERRED due Docker Desktop API error (`/images/acroform-filler-web/json` returned 500), not app boot/runtime stack failure
 

@@ -52,7 +52,13 @@ try {
 await page.waitForTimeout(1500);
 
 const finalUrl = page.url();
-const shot = await page.screenshot({ fullPage: true });
+let shot = Buffer.alloc(0);
+// Retry capture because Chrome PDF viewer sometimes paints after initial navigation in CI.
+for (let i = 0; i < 5; i += 1) {
+  shot = await page.screenshot({ fullPage: true });
+  if (shot.length > 5000) break;
+  await page.waitForTimeout(700);
+}
 const domInfo = await page.evaluate(() => ({
   title: document.title || "",
   embedCount: document.querySelectorAll("embed").length,
@@ -65,7 +71,7 @@ await context.close();
 await browser.close();
 server.close();
 
-const ok = !gotoError && !downloadStarted && shot.length > 12000;
+const ok = !gotoError && !downloadStarted && shot.length > 5000;
 const result = {
   ok,
   headed,

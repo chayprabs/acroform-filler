@@ -104,6 +104,10 @@ if __name__ == "__main__":
         "counts": counts,
         "checks": checks,
         "verdict": verdict,
+        "remainingActions": [
+            "Set PDF_FORMS_WEB_URL and PDF_FORMS_API_URL to production domains and rerun release verify-hosted.",
+            "Capture macOS Preview screenshot and ingest with record_preview_evidence.py.",
+        ],
     }
 
     out_path = (repo_root / args.output).resolve()
