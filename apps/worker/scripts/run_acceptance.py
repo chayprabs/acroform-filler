@@ -10,6 +10,8 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from fastapi.testclient import TestClient
+from pypdf import PdfWriter
+from pypdf.generic import ArrayObject, DictionaryObject, NameObject, TextStringObject
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.main import app
@@ -99,8 +101,38 @@ def run_a3(client: TestClient, sample_path: Path) -> dict[str, object]:
     }
 
 
+def _build_xfa_only_pdf() -> bytes:
+    writer = PdfWriter()
+    writer.add_blank_page(width=300, height=300)
+    acro = DictionaryObject()
+    acro[NameObject("/XFA")] = ArrayObject(
+        [
+            TextStringObject("template"),
+            TextStringObject("<xfa:template xmlns:xfa='http://www.xfa.org/schema/xfa-template/3.3/'/>"),
+        ]
+    )
+    acro[NameObject("/Fields")] = ArrayObject()
+    writer._root_object[NameObject("/AcroForm")] = writer._add_object(acro)
+    out = io.BytesIO()
+    writer.write(out)
+    return out.getvalue()
+
+
+def run_a2(client: TestClient) -> dict[str, object]:
+    xfa_pdf = _build_xfa_only_pdf()
+    response = client.post("/v1/inspect", files={"file": ("xfa-only.pdf", xfa_pdf, "application/pdf")})
+    body = response.json() if response.headers.get("content-type", "").startswith("application/json") else {}
+    detail = body.get("detail") if isinstance(body, dict) else {}
+    return {
+        "ok": response.status_code == 409 and (detail or {}).get("code") == "409_XFA_NOT_CONVERTIBLE",
+        "status": response.status_code,
+        "code": (detail or {}).get("code"),
+        "message": (detail or {}).get("message"),
+    }
+
+
 if __name__ == "__main__":
     client = TestClient(app)
-    sample = Path("samples/w9.pdf")
-    result = {"A1": run_a1(client, sample), "A3": run_a3(client, sample)}
+    sample = Path(__file__).resolve().parents[1] / "samples" / "w9.pdf"
+    result = {"A1": run_a1(client, sample), "A2": run_a2(client), "A3": run_a3(client, sample)}
     print(json.dumps(result, indent=2))
