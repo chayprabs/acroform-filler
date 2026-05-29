@@ -71,6 +71,7 @@ Targeted runtime checks:
 - GitHub Actions stack upgraded to current majors (`checkout@v5`, `setup-node@v6`, `setup-python@v6`, `pnpm/action-setup@v6`, `upload-artifact@v5`, `codeql-action@v4`) and validated by green CI/CodeQL on `main` (`26606216574`, `26606216586`)
 - `upload-artifact` upgraded to `@v7` for Node24 compatibility; re-verified with green `main` runs (`26606537286`, `26606537317`)
 - Qualification flake follow-up: CI run `26606931479` failed in `verify_renderers.py` due transient Chrome screenshot capture protocol error; fixed with retry+capture error handling in `verify_chrome_pdf_viewer.mjs` and revalidated green in `26607046010` / `26607046019`
+- `Section14 Qualify` workflow run `26607929489` - PASS (completed/success on `main`, commit `8e58501`), uploaded `section14-verdict` artifact with `section14-report.json` showing `14.local_automation=pass` and `14.17.release_artifacts=pass`; remaining actions unchanged (`14.17.hosted_urls` verify-deferred, `14.20.A1.preview` blocked)
 - Docker host status: local `docker compose up -d` currently VERIFY-DEFERRED due host API error (`dockerDesktopLinuxEngine v1.54 ... 500`), not app stack failure
 - Docker host status (latest retry): `docker compose up -d` still VERIFY-DEFERRED due Docker Desktop API error (`/images/acroform-filler-web/json` returned 500), not app boot/runtime stack failure
 
